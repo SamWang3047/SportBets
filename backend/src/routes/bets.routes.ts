@@ -30,7 +30,7 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
     res.status(201).json(bet);
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ error: 'Validation error', details: error.errors });
+      res.status(400).json({ error: 'Validation error', details: error.issues });
     } else {
       res.status(400).json({ error: error.message || 'Failed to place bet' });
     }
@@ -53,7 +53,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
 // GET /api/bets/:betId
 router.get('/:betId', authenticate, async (req: Request, res: Response) => {
   try {
-    const betId = parseInt(req.params.betId);
+    const betId = parseInt(req.params.betId as string);
     const userId = (req as any).user.id;
 
     const bet = await getBetById(betId, userId);

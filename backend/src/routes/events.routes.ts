@@ -32,7 +32,7 @@ router.get('/events', async (req: Request, res: Response) => {
 // GET /api/events/:eventId
 router.get('/events/:eventId', async (req: Request, res: Response) => {
   try {
-    const eventId = parseInt(req.params.eventId);
+    const eventId = parseInt(req.params.eventId as string);
     const event = await getEventById(eventId);
 
     if (!event) {
@@ -48,7 +48,7 @@ router.get('/events/:eventId', async (req: Request, res: Response) => {
 // GET /api/events/:eventId/markets
 router.get('/events/:eventId/markets', async (req: Request, res: Response) => {
   try {
-    const eventId = parseInt(req.params.eventId);
+    const eventId = parseInt(req.params.eventId as string);
     const eventWithOdds = await getEventWithOdds(eventId);
 
     if (!eventWithOdds) {
@@ -64,7 +64,7 @@ router.get('/events/:eventId/markets', async (req: Request, res: Response) => {
 // GET /api/events/:eventId/odds
 router.get('/events/:eventId/odds', async (req: Request, res: Response) => {
   try {
-    const eventId = parseInt(req.params.eventId);
+    const eventId = parseInt(req.params.eventId as string);
     const eventWithOdds = await getEventWithOdds(eventId);
 
     if (!eventWithOdds) {

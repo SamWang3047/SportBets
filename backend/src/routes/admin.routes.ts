@@ -53,7 +53,7 @@ router.post('/events', authenticate, adminOnly, async (req: Request, res: Respon
     res.status(201).json(newEvent);
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ error: 'Validation error', details: error.errors });
+      res.status(400).json({ error: 'Validation error', details: error.issues });
     } else {
       res.status(500).json({ error: 'Failed to create event' });
     }
@@ -63,7 +63,7 @@ router.post('/events', authenticate, adminOnly, async (req: Request, res: Respon
 // POST /api/admin/events/:eventId/start
 router.post('/events/:eventId/start', authenticate, adminOnly, async (req: Request, res: Response) => {
   try {
-    const eventId = parseInt(req.params.eventId);
+    const eventId = parseInt(req.params.eventId as string);
 
     const [event] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
     if (!event) {
@@ -93,7 +93,7 @@ router.post('/events/:eventId/start', authenticate, adminOnly, async (req: Reque
 // POST /api/admin/events/:eventId/stop
 router.post('/events/:eventId/stop', authenticate, adminOnly, async (req: Request, res: Response) => {
   try {
-    const eventId = parseInt(req.params.eventId);
+    const eventId = parseInt(req.params.eventId as string);
     stopSimulation(eventId);
     res.json({ message: 'Simulation stopped', eventId });
   } catch (error: any) {
@@ -130,7 +130,7 @@ router.post('/markets', authenticate, adminOnly, async (req: Request, res: Respo
     });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ error: 'Validation error', details: error.errors });
+      res.status(400).json({ error: 'Validation error', details: error.issues });
     } else {
       res.status(500).json({ error: 'Failed to create market' });
     }
