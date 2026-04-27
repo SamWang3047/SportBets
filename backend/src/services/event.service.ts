@@ -52,7 +52,7 @@ export async function getEvents(filters?: {
     conditions.push(eq(events.status, filters.status as any));
   }
 
-  let query = db.select().from(events);
+  let query = db.select().from(events) as any;
 
   if (conditions.length > 0) {
     query = query.where(and(...conditions));
