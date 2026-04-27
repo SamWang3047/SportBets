@@ -5,44 +5,41 @@ A modern sports betting platform built with React, TypeScript, Node.js, and Expr
 ## Tech Stack
 
 ### Frontend
-- **React 18** - UI library
+- **React 19** - UI library
 - **TypeScript** - Type safety
 - **Vite** - Build tool and dev server
 - **Tailwind CSS** - Styling
 - **React Router** - Client-side routing
 - **Zustand** - State management
-- **TanStack Query** - Data fetching and caching
-- **React Hook Form** - Form handling
-- **Zod** - Schema validation
+- **Axios** - HTTP client
 
 ### Backend
 - **Node.js + Express** - REST API
 - **TypeScript** - Type safety
-- **Socket.io** - Real-time odds updates
+- **Socket.io** - Real-time updates
+- **Drizzle ORM** - Database ORM
+- **PostgreSQL** - Database
 - **JWT** - Authentication
-- **Zod** - API validation
+- **Zod** - Schema validation
 
 ## Project Structure
 
 ```
 SportBets/
 ├── src/                      # React frontend
-│   ├── components/          # Reusable components
 │   ├── pages/               # Page components
-│   ├── hooks/               # Custom hooks
-│   ├── store/               # Zustand store
 │   ├── services/            # API services
+│   ├── store/               # Zustand store
 │   └── types/               # TypeScript types
 ├── backend/                 # Express backend
 │   ├── src/
-│   │   ├── controllers/     # Route controllers
-│   │   ├── models/          # Data models
-│   │   ├── routes/          # API routes
-│   │   ├── middleware/      # Express middleware
-│   │   ├── utils/           # Utility functions
-│   │   └── types/           # TypeScript types
-│   └── package.json
-└── package.json
+│   │   ├── db/             # Database schema
+│   │   ├── routes/         # API routes
+│   │   ├── services/       # Business logic
+│   │   ├── sockets/        # WebSocket
+│   │   └── seed.ts         # Database seed
+│   └── drizzle.config.ts   # Drizzle config
+└── docs/                    # Documentation
 ```
 
 ## Getting Started
@@ -82,6 +79,14 @@ SportBets/
 
 ### Running the Application
 
+**Option 1: Run both together (recommended)**
+
+```bash
+npm run dev:all
+```
+
+**Option 2: Run separately**
+
 1. **Start the backend server**
    ```bash
    cd backend
@@ -93,29 +98,39 @@ SportBets/
    npm run dev
    ```
 
+**Option 3: Use scripts**
+
+- Windows: `dev.bat`
+- Linux/Mac: `./dev.sh`
+
 3. Open your browser and navigate to `http://localhost:5173`
 
 ## Available Scripts
 
-### Frontend
-- `npm run dev` - Start development server
+### Frontend (root)
+- `npm run dev` - Start Vite dev server
+- `npm run dev:all` - Start both frontend and backend
 - `npm run build` - Build for production
+- `npm run lint` - Run ESLint
 - `npm run preview` - Preview production build
 
 ### Backend
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Compile TypeScript
-- `npm start` - Start production server
+- `npm run dev` - Start Express dev server
+- `npm run build` - Build TypeScript
+- `npm run start` - Start production server
+- `npm run seed` - Seed database with sample data
+- `npm run db:push` - Push schema to database
+- `npm run db:studio` - Open Drizzle Studio
 
 ## Features
 
-- [ ] User authentication and authorization
-- [ ] Real-time odds updates via WebSockets
-- [ ] Place and track bets
-- [ ] User wallet/balance management
-- [ ] Bet history and analytics
+- [x] User authentication and authorization
+- [x] Real-time odds updates via WebSockets
+- [x] Place and track bets
+- [x] User wallet/balance management
+- [x] Bet history and analytics
 - [ ] Admin panel for odds management
-- [ ] Responsive design
+- [x] Responsive design
 
 ## Development Roadmap
 
