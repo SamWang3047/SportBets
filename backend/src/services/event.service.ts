@@ -42,14 +42,20 @@ export async function getEvents(filters?: {
   status?: string;
   limit?: number;
 }) {
-  let query = db.select().from(events);
+  const conditions = [];
 
   if (filters?.sportId) {
-    query = query.where(eq(events.sportId, filters.sportId));
+    conditions.push(eq(events.sportId, filters.sportId));
   }
 
   if (filters?.status) {
-    query = query.where(eq(events.status, filters.status));
+    conditions.push(eq(events.status, filters.status as any));
+  }
+
+  let query = db.select().from(events);
+
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions));
   }
 
   query = query.orderBy(events.startTime);
