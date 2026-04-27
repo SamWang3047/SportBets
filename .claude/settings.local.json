@@ -5,7 +5,13 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(taskkill *)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3001)",
+      "Bash(psql *)",
+      "Bash(docker run *)",
+      "Bash(npm run *)"
     ]
   }
 }

@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { db } from './db';
 import { sports, footballTeams, horses, jockeys, events, markets, odds, users, wallets } from './db/schema';
+import { eq } from 'drizzle-orm';
 
 async function seed() {
   console.log('Seeding database...');
@@ -13,7 +14,7 @@ async function seed() {
       { code: 'horse_racing', name: 'Horse Racing' },
     ]).returning();
 
-    const horseRacingSport = await db.select().from(sports).where(sports.code === 'horse_racing').limit(1);
+    const horseRacingSport = await db.select().from(sports).where(eq(sports.code, 'horse_racing')).limit(1);
 
     // Create football teams
     console.log('Creating football teams...');
