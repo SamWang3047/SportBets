@@ -1,196 +1,253 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { eventsApi, betsApi } from '../services/api';
-import type { Event, Market, Odd } from '../types';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import AppShell from '../components/AppShell';
+import { betsApi, eventsApi } from '../services/api';
+import type { Event, Market } from '../types';
+
+type SelectedOdds = {
+  marketId: number;
+  selectionId: string;
+  selectionName: string;
+  odds: number;
+};
+
+function formatDateTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function getApiErrorMessage(error: unknown, fallback: string) {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { error?: string } } }).response;
+    return response?.data?.error || fallback;
+  }
+
+  return fallback;
+}
 
 export default function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const [event, setEvent] = useState<Event | null>(null);
   const [markets, setMarkets] = useState<Market[]>([]);
-  const [selectedOdds, setSelectedOdds] = useState<{ marketId: number; selectionId: string; odds: number } | null>(null);
-  const [stake, setStake] = useState('');
+  const [selectedOdds, setSelectedOdds] = useState<SelectedOdds | null>(null);
+  const [stake, setStake] = useState('100');
   const [loading, setLoading] = useState(true);
   const [placingBet, setPlacingBet] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    if (eventId) {
-      loadEventData();
-    }
+    let mounted = true;
+
+    const loadEventData = async () => {
+      if (!eventId) return;
+
+      setLoading(true);
+      setError('');
+
+      try {
+        const id = Number.parseInt(eventId, 10);
+        const [eventData, marketsData] = await Promise.all([
+          eventsApi.getEvent(id),
+          eventsApi.getEventMarkets(id),
+        ]);
+
+        if (!mounted) return;
+        setEvent(eventData);
+        setMarkets(marketsData);
+      } catch {
+        if (mounted) setError('Failed to load event data.');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    loadEventData();
+
+    return () => {
+      mounted = false;
+    };
   }, [eventId]);
 
-  const loadEventData = async () => {
-    try {
-      const [eventData, marketsData] = await Promise.all([
-        eventsApi.getEvent(parseInt(eventId!)),
-        eventsApi.getEventMarkets(parseInt(eventId!)),
-      ]);
-      setEvent(eventData);
-      setMarkets(marketsData);
-    } catch (error) {
-      console.error('Failed to load event:', error);
-      setError('Failed to load event data');
-    } finally {
-      setLoading(false);
-    }
+  const featuredOdds = useMemo(() => markets.flatMap((market) => market.odds.slice(0, 3)).slice(0, 3), [markets]);
+  const stakeNumber = Number.parseFloat(stake) || 0;
+  const potentialPayout = selectedOdds ? stakeNumber * selectedOdds.odds : 0;
+
+  const handleSelectOdds = (marketId: number, selectionId: string, selectionName: string, odds: number) => {
+    setSelectedOdds({ marketId, selectionId, selectionName, odds });
+    setSuccess('');
+    setError('');
   };
 
-  const handleSelectOdds = (marketId: number, selectionId: string, odds: number) => {
-    setSelectedOdds({ marketId, selectionId, odds });
-  };
-
-  const handlePlaceBet = async (e: React.FormEvent) => {
+  const handlePlaceBet = async (e: FormEvent) => {
     e.preventDefault();
     if (!selectedOdds || !stake || !event) return;
 
     setPlacingBet(true);
     setError('');
+    setSuccess('');
 
     try {
-      const stakeNum = parseFloat(stake);
       await betsApi.placeBet({
         eventId: event.id,
         marketId: selectedOdds.marketId,
         selectionId: selectedOdds.selectionId,
-        stake: stakeNum,
+        stake: stakeNumber,
       });
 
-      alert('Bet placed successfully!');
+      setSuccess('Bet placed successfully.');
       setSelectedOdds(null);
-      setStake('');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to place bet');
+      setStake('100');
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, 'Failed to place bet.'));
     } finally {
       setPlacingBet(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!event) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white">Event not found</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <header className="bg-gray-800 border-b border-gray-700">
-        <div className="container mx-auto px-4 py-4">
-          <button
-            onClick={() => navigate('/')}
-            className="text-blue-400 hover:text-blue-300 mb-2"
-          >
-            ← Back to Home
-          </button>
-          <h1 className="text-2xl font-bold">{event.name}</h1>
-          <p className="text-gray-400">
-            Status: <span className={`font-semibold ${
-              event.status === 'live' ? 'text-green-400' : event.status === 'scheduled' ? 'text-blue-400' : 'text-gray-400'
-            }`}>{event.status}</span>
-          </p>
-          <p className="text-gray-400">
-            Start Time: {new Date(event.startTime).toLocaleString()}
-          </p>
-        </div>
-      </header>
+    <AppShell activePage="Live">
+      <div className="workspace-page">
+        <button className="back-link" type="button" onClick={() => navigate('/')}>
+          Back to Dashboard
+        </button>
 
-      <main className="container mx-auto px-4 py-8">
-        {error && (
-          <div className="bg-red-500/20 border border-red-500 text-red-500 px-4 py-3 rounded mb-4">
-            {error}
+        {loading ? (
+          <div className="dashboard-loading" role="status" aria-label="Loading event">
+            <span />
+            <span />
           </div>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Betting Markets</h2>
-            {markets.map((market) => (
-              <div key={market.id} className="bg-gray-800 rounded-lg p-4 mb-4">
-                <h3 className="font-semibold mb-3">{market.name}</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {market.odds.map((odd) => (
+        ) : !event ? (
+          <section className="panel empty-state-panel">
+            <h1>Event not found</h1>
+            <p>The selected event is unavailable or has been removed.</p>
+          </section>
+        ) : (
+          <>
+            <section className="panel event-hero-panel">
+              <div>
+                <span className={`status-chip ${event.status}`}>{event.status}</span>
+                <h1>{event.name}</h1>
+                <p>{formatDateTime(event.startTime)}</p>
+              </div>
+              <div className="hero-odds-strip">
+                {featuredOdds.length > 0 ? (
+                  featuredOdds.map((odd) => (
                     <button
                       key={odd.id}
-                      onClick={() => handleSelectOdds(market.id, odd.selectionId, odd.decimalOdds)}
+                      type="button"
+                      onClick={() => handleSelectOdds(odd.marketId, odd.selectionId, odd.selectionName, odd.decimalOdds)}
                       disabled={event.status !== 'scheduled' || !odd.isActive}
-                      className={`p-3 rounded border transition-colors ${
-                        selectedOdds?.marketId === market.id && selectedOdds?.selectionId === odd.selectionId
-                          ? 'bg-blue-600 border-blue-600'
-                          : 'bg-gray-700 border-gray-600 hover:bg-gray-600'
-                      } ${!odd.isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <div className="text-sm text-gray-400">{odd.selectionName}</div>
-                      <div className="text-lg font-bold">{odd.decimalOdds.toFixed(2)}</div>
+                      <span>{odd.selectionName}</span>
+                      <strong>{odd.decimalOdds.toFixed(2)}</strong>
                     </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {selectedOdds && (
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Place Bet</h2>
-              <form onSubmit={handlePlaceBet}>
-                <div className="mb-4">
-                  <label className="block text-gray-300 mb-2">Selection</label>
-                  <div className="bg-gray-700 px-4 py-2 rounded">
-                    {selectedOdds.selectionId} @ {selectedOdds.odds.toFixed(2)}
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <label className="block text-gray-300 mb-2">Stake</label>
-                  <input
-                    type="number"
-                    value={stake}
-                    onChange={(e) => setStake(e.target.value)}
-                    min="1"
-                    step="0.01"
-                    className="w-full px-4 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
-                    required
-                  />
-                </div>
-
-                {stake && (
-                  <div className="mb-4 bg-gray-700 px-4 py-2 rounded">
-                    <div className="text-gray-400">Potential Payout:</div>
-                    <div className="text-xl font-bold text-green-400">
-                      {(parseFloat(stake) * selectedOdds.odds).toFixed(2)}
-                    </div>
-                  </div>
+                  ))
+                ) : (
+                  <span>No markets are open yet.</span>
                 )}
+              </div>
+            </section>
 
-                <button
-                  type="submit"
-                  disabled={placingBet || event.status !== 'scheduled'}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50"
-                >
-                  {placingBet ? 'Placing Bet...' : 'Place Bet'}
-                </button>
+            {(error || success) && (
+              <div className={`message-banner ${success ? 'success' : 'error'}`} role="status">
+                {success || error}
+              </div>
+            )}
 
-                <button
-                  type="button"
-                  onClick={() => setSelectedOdds(null)}
-                  className="w-full mt-2 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded transition-colors"
-                >
-                  Cancel
-                </button>
-              </form>
+            <div className="event-detail-grid">
+              <section className="market-stack" aria-label="Betting markets">
+                <div className="section-heading">
+                  <h2>Betting Markets</h2>
+                  <span>{markets.length} open</span>
+                </div>
+                {markets.length === 0 ? (
+                  <div className="panel empty-state-panel">
+                    <h2>No markets available</h2>
+                    <p>Check back when the event markets are opened.</p>
+                  </div>
+                ) : (
+                  markets.map((market) => (
+                    <article key={market.id} className="panel market-panel">
+                      <div className="market-panel-heading">
+                        <div>
+                          <h3>{market.name}</h3>
+                          <span>{market.status}</span>
+                        </div>
+                        <span>{market.marketType}</span>
+                      </div>
+                      <div className="market-odds-grid">
+                        {market.odds.map((odd) => (
+                          <button
+                            key={odd.id}
+                            type="button"
+                            onClick={() => handleSelectOdds(market.id, odd.selectionId, odd.selectionName, odd.decimalOdds)}
+                            disabled={event.status !== 'scheduled' || !odd.isActive}
+                            className={
+                              selectedOdds?.marketId === market.id && selectedOdds?.selectionId === odd.selectionId
+                                ? 'is-selected'
+                                : ''
+                            }
+                          >
+                            <span>{odd.selectionName}</span>
+                            <strong>{odd.decimalOdds.toFixed(2)}</strong>
+                          </button>
+                        ))}
+                      </div>
+                    </article>
+                  ))
+                )}
+              </section>
+
+              <aside className="panel quick-bet-panel">
+                <h2>Quick Bet</h2>
+                {selectedOdds ? (
+                  <form onSubmit={handlePlaceBet}>
+                    <div className="quick-selection">
+                      <span>Selection</span>
+                      <strong>{selectedOdds.selectionName}</strong>
+                      <em>{selectedOdds.odds.toFixed(2)}</em>
+                    </div>
+
+                    <label htmlFor="event-stake">Stake</label>
+                    <input
+                      id="event-stake"
+                      type="number"
+                      value={stake}
+                      onChange={(e) => setStake(e.target.value)}
+                      min="1"
+                      step="0.01"
+                      required
+                    />
+
+                    <div className="quick-payout">
+                      <span>Potential Payout</span>
+                      <strong>${potentialPayout.toFixed(2)}</strong>
+                    </div>
+
+                    <button className="primary-action" type="submit" disabled={placingBet || event.status !== 'scheduled'}>
+                      {placingBet ? 'Placing Bet...' : 'Place Bet'}
+                    </button>
+                    <button className="secondary-action" type="button" onClick={() => setSelectedOdds(null)}>
+                      Clear Selection
+                    </button>
+                  </form>
+                ) : (
+                  <p>Select a market price to build your bet slip.</p>
+                )}
+              </aside>
             </div>
-          )}
-        </div>
-      </main>
-    </div>
+          </>
+        )}
+      </div>
+    </AppShell>
   );
 }

@@ -32,7 +32,7 @@ if (token && userStr) {
   try {
     const user = JSON.parse(userStr);
     useAuthStore.setState({ user, token, isAuthenticated: true });
-  } catch (e) {
+  } catch {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   }

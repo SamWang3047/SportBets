@@ -11,7 +11,12 @@
       "Bash(findstr :3001)",
       "Bash(psql *)",
       "Bash(docker run *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(findstr \":5173\\\\|:5174\")",
+      "Bash(curl *)"
     ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true
   }
 }

@@ -1,7 +1,11 @@
 import axios from 'axios';
 import type { AuthResponse, Event, Market, Odd, Bet, Wallet, Transaction } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const configuredApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const normalizedApiUrl = configuredApiUrl.replace(/\/+$/, '');
+const API_BASE_URL = normalizedApiUrl.endsWith('/api')
+  ? normalizedApiUrl
+  : `${normalizedApiUrl}/api`;
 
 const api = axios.create({
   baseURL: API_BASE_URL,

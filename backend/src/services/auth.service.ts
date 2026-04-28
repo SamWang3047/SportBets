@@ -73,31 +73,39 @@ export async function registerUser(email: string, password: string, displayName:
 }
 
 export async function loginUser(email: string, password: string) {
-  const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
-  if (!user) {
-    throw new Error('Invalid credentials');
-  }
+  console.log('Login attempt for email:', email);
+  try {
+    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    console.log('User found:', !!user);
+    if (!user) {
+      throw new Error('Invalid credentials');
+    }
 
-  const isValid = await verifyPassword(password, user.passwordHash);
-  if (!isValid) {
-    throw new Error('Invalid credentials');
-  }
+    const isValid = await verifyPassword(password, user.passwordHash);
+    console.log('Password valid:', isValid);
+    if (!isValid) {
+      throw new Error('Invalid credentials');
+    }
 
-  const token = generateToken({
-    userId: user.id,
-    email: user.email,
-    role: user.role,
-  });
-
-  return {
-    user: {
-      id: user.id,
+    const token = generateToken({
+      userId: user.id,
       email: user.email,
-      displayName: user.displayName,
       role: user.role,
-    },
-    token,
-  };
+    });
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        role: user.role,
+      },
+      token,
+    };
+  } catch (error: any) {
+    console.error('Login error:', error);
+    throw error;
+  }
 }
 
 export async function getUserById(userId: number) {

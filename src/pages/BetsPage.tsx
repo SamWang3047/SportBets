@@ -1,7 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AppShell from '../components/AppShell';
 import { betsApi } from '../services/api';
 import type { Bet } from '../types';
+
+function formatDateTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
 
 export default function BetsPage() {
   const navigate = useNavigate();
@@ -9,109 +22,79 @@ export default function BetsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadBets();
+    let mounted = true;
+
+    betsApi
+      .getBets(50)
+      .then((betsData) => {
+        if (mounted) setBets(betsData);
+      })
+      .catch(() => {
+        if (mounted) setBets([]);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const loadBets = async () => {
-    try {
-      const betsData = await betsApi.getBets(50);
-      setBets(betsData);
-    } catch (error) {
-      console.error('Failed to load bets:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'won':
-        return 'text-green-400';
-      case 'lost':
-        return 'text-red-400';
-      case 'pending':
-        return 'text-yellow-400';
-      default:
-        return 'text-gray-400';
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <header className="bg-gray-800 border-b border-gray-700">
-        <div className="container mx-auto px-4 py-4">
-          <button
-            onClick={() => navigate('/')}
-            className="text-blue-400 hover:text-blue-300 mb-2"
-          >
-            ← Back to Home
+    <AppShell activePage="My Bets">
+      <div className="workspace-page">
+        <div className="page-title-row">
+          <div>
+            <h1>My Bets</h1>
+            <p>Track pending slips, settlements, and payout history.</p>
+          </div>
+          <button className="deposit-button" type="button" onClick={() => navigate('/')}>
+            Browse Events
           </button>
-          <h1 className="text-2xl font-bold">My Bets</h1>
         </div>
-      </header>
 
-      <main className="container mx-auto px-4 py-8">
-        {bets.length === 0 ? (
-          <div className="bg-gray-800 rounded-lg p-8 text-center">
-            <p className="text-gray-400">No bets placed yet.</p>
-            <button
-              onClick={() => navigate('/')}
-              className="mt-4 bg-blue-600 hover:bg-blue-700 py-2 px-4 rounded transition-colors"
-            >
+        {loading ? (
+          <div className="dashboard-loading" role="status" aria-label="Loading bets">
+            <span />
+            <span />
+          </div>
+        ) : bets.length === 0 ? (
+          <section className="panel empty-state-panel">
+            <h2>No bets placed yet</h2>
+            <p>Your active and settled wagers will appear here after you place a bet.</p>
+            <button className="primary-action narrow" type="button" onClick={() => navigate('/')}>
               Browse Events
             </button>
-          </div>
+          </section>
         ) : (
-          <div className="space-y-4">
+          <section className="panel history-panel">
+            <div className="history-table-head">
+              <span>Bet</span>
+              <span>Selection</span>
+              <span>Stake</span>
+              <span>Odds</span>
+              <span>Payout</span>
+              <span>Status</span>
+              <span>Placed</span>
+            </div>
             {bets.map((bet) => (
-              <div key={bet.id} className="bg-gray-800 rounded-lg p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="font-semibold">Bet #{bet.id}</h3>
-                    <p className="text-gray-400 text-sm">Event ID: {bet.eventId}</p>
-                  </div>
-                  <span className={`font-semibold ${getStatusColor(bet.status)}`}>
-                    {bet.status.toUpperCase()}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                  <div>
-                    <div className="text-gray-400 text-sm">Stake</div>
-                    <div className="font-semibold">{bet.stake.toFixed(2)}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-400 text-sm">Odds</div>
-                    <div className="font-semibold">{bet.oddsAtPlacement.toFixed(2)}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-400 text-sm">Potential Payout</div>
-                    <div className="font-semibold text-green-400">{bet.potentialPayout.toFixed(2)}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-400 text-sm">Placed At</div>
-                    <div className="font-semibold">{new Date(bet.placedAt).toLocaleString()}</div>
-                  </div>
-                </div>
-
-                {bet.settledAt && (
-                  <div className="mt-2 text-gray-400 text-sm">
-                    Settled at: {new Date(bet.settledAt).toLocaleString()}
-                  </div>
-                )}
-              </div>
+              <article className="history-row" key={bet.id}>
+                <span>#{bet.id}</span>
+                <span>
+                  <strong>{bet.selectionId}</strong>
+                  <small>Event {bet.eventId}</small>
+                </span>
+                <span>${bet.stake.toFixed(2)}</span>
+                <span>{bet.oddsAtPlacement.toFixed(2)}</span>
+                <span>${bet.potentialPayout.toFixed(2)}</span>
+                <span className={`status-chip ${bet.status}`}>{bet.status}</span>
+                <span>{formatDateTime(bet.placedAt)}</span>
+              </article>
             ))}
-          </div>
+          </section>
         )}
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

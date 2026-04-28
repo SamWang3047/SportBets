@@ -1,6 +1,8 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { createServer } from 'http';
 import authRoutes from './routes/auth.routes';
 import eventsRoutes from './routes/events.routes';
@@ -9,7 +11,8 @@ import walletRoutes from './routes/wallet.routes';
 import adminRoutes from './routes/admin.routes';
 import { initializeSocket } from './sockets';
 
-dotenv.config();
+console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET');
+console.log('DATABASE_URL value:', process.env.DATABASE_URL);
 
 const app = express();
 const PORT = process.env.PORT || 3001;

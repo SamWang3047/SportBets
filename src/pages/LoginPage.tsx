@@ -1,7 +1,16 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../services/api';
 import { useAuthStore } from '../store/authStore';
+
+function getApiErrorMessage(error: unknown, fallback: string) {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { error?: string } } }).response;
+    return response?.data?.error || fallback;
+  }
+
+  return fallback;
+}
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,97 +22,110 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      let result;
-      if (isLogin) {
-        result = await authApi.login(email, password);
-      } else {
-        result = await authApi.register(email, password, displayName);
-      }
+      const result = isLogin
+        ? await authApi.login(email, password)
+        : await authApi.register(email, password, displayName);
 
       setAuth(result.user, result.token);
       navigate('/');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Authentication failed');
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, 'Authentication failed'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-gray-800 rounded-lg p-8">
-        <h1 className="text-3xl font-bold text-white mb-6 text-center">
-          {isLogin ? 'Login to SportBets' : 'Create Account'}
-        </h1>
+    <main className="login-shell">
+      <section className="login-brand-panel">
+        <div className="brand-mark login-brand">
+          <span className="brand-logo">S</span>
+          <span>SportBets</span>
+        </div>
+        <div className="login-preview panel">
+          <div className="featured-topline">
+            <div>
+              <span className="live-pill">LIVE</span>
+              <span>Football - League Play</span>
+            </div>
+            <button type="button">Preview</button>
+          </div>
+          <div className="login-score">
+            <span>City United</span>
+            <strong>2 - 1</strong>
+            <span>Harbor FC</span>
+          </div>
+          <div className="featured-odds">
+            <button type="button"><span>City United</span><strong>home</strong><em>1.72</em></button>
+            <button type="button"><span>Draw</span><strong>draw</strong><em>3.80</em></button>
+            <button type="button"><span>Harbor FC</span><strong>away</strong><em>2.10</em></button>
+          </div>
+        </div>
+      </section>
+
+      <section className="login-card panel">
+        <h1>{isLogin ? 'Login to SportBets' : 'Create Account'}</h1>
+        <p>Use virtual credits to follow markets, place slips, and track performance.</p>
 
         {error && (
-          <div className="bg-red-500/20 border border-red-500 text-red-500 px-4 py-3 rounded mb-4">
+          <div className="message-banner error" role="alert">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="auth-form">
           {!isLogin && (
-            <div>
-              <label className="block text-gray-300 mb-2">Display Name</label>
+            <label>
+              <span>Display Name</span>
               <input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
                 required={!isLogin}
               />
-            </div>
+            </label>
           )}
 
-          <div>
-            <label className="block text-gray-300 mb-2">Email</label>
+          <label>
+            <span>Email</span>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
               required
             />
-          </div>
+          </label>
 
-          <div>
-            <label className="block text-gray-300 mb-2">Password</label>
+          <label>
+            <span>Password</span>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
               required
               minLength={6}
             />
-          </div>
+          </label>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50"
-          >
+          <button className="primary-action" type="submit" disabled={loading}>
             {loading ? 'Loading...' : isLogin ? 'Login' : 'Register'}
           </button>
         </form>
 
-        <div className="mt-4 text-center">
-          <button
-            type="button"
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-blue-400 hover:text-blue-300"
-          >
-            {isLogin ? "Don't have an account? Register" : 'Already have an account? Login'}
-          </button>
-        </div>
-      </div>
-    </div>
+        <button
+          type="button"
+          onClick={() => setIsLogin(!isLogin)}
+          className="auth-switch"
+        >
+          {isLogin ? "Don't have an account? Register" : 'Already have an account? Login'}
+        </button>
+      </section>
+    </main>
   );
 }
