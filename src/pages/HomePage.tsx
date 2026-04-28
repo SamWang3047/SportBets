@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../components/AppShell';
-import { eventsApi } from '../services/api';
+import { eventsApi, devApi } from '../services/api';
 import type { Event as SportEvent, Market } from '../types';
+
 
 type EventCard = {
   id: number;
@@ -15,7 +16,6 @@ type EventCard = {
   marketCount: number;
   odds: Array<{ label: string; value: string }>;
 };
-
 const fallbackEvents: SportEvent[] = [
   {
     id: -1,
@@ -45,7 +45,6 @@ const fallbackEvents: SportEvent[] = [
     updatedAt: new Date().toISOString(),
   },
 ];
-
 const fallbackLiveCards: EventCard[] = [
   {
     id: -10,
@@ -106,13 +105,11 @@ const fallbackLiveCards: EventCard[] = [
     ],
   },
 ];
-
 const featuredFallbackOdds = [
   { selectionName: 'Northside', selectionId: 'home', decimalOdds: 1.9 },
   { selectionName: 'Total', selectionId: 'total', decimalOdds: 1.91 },
   { selectionName: 'Southridge', selectionId: 'away', decimalOdds: 1.9 },
 ];
-
 function splitEventName(name: string) {
   const parts = name.split(/\s+vs\s+/i);
   if (parts.length >= 2) {
@@ -120,24 +117,20 @@ function splitEventName(name: string) {
   }
   return [name, 'Field'];
 }
-
 function formatStartLabel(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return 'Today';
-
   return date.toLocaleTimeString([], {
     hour: 'numeric',
     minute: '2-digit',
   });
 }
-
 function getSportLabel(event: SportEvent) {
   if (event.name.toLowerCase().includes('stakes') || event.name.toLowerCase().includes('sprint')) {
     return 'Horse Racing';
   }
   return event.sportId === 2 ? 'Horse Racing' : 'Football';
 }
-
 function normalizeOdds(market?: Market) {
   const source = market?.odds?.length ? market.odds : featuredFallbackOdds;
   return source.slice(0, 3).map((odd, index) => ({
@@ -146,11 +139,9 @@ function normalizeOdds(market?: Market) {
     value: odd.decimalOdds.toFixed(2),
   }));
 }
-
 function toEventCard(event: SportEvent, market?: Market, index = 0): EventCard {
   const [teamA, teamB] = splitEventName(event.name);
   const odds = normalizeOdds(market).map((odd) => ({ label: odd.label, value: odd.value }));
-
   return {
     id: event.id,
     sport: getSportLabel(event),
@@ -163,7 +154,6 @@ function toEventCard(event: SportEvent, market?: Market, index = 0): EventCard {
     odds,
   };
 }
-
 function BasketballMark({ variant = 'blue' }: { variant?: 'blue' | 'purple' }) {
   return (
     <div className={`ball-mark ${variant}`}>
@@ -174,12 +164,10 @@ function BasketballMark({ variant = 'blue' }: { variant?: 'blue' | 'purple' }) {
     </div>
   );
 }
-
 function MiniSportIcon({ sport }: { sport: string }) {
   const className = `mini-sport ${sport.toLowerCase().replace(/\s+/g, '-')}`;
   return <span className={className} aria-hidden="true" />;
 }
-
 function StatRow({ label, left, right, split = 50 }: { label: string; left: string; right: string; split?: number }) {
   return (
     <div className="stat-row">
@@ -194,7 +182,6 @@ function StatRow({ label, left, right, split = 50 }: { label: string; left: stri
     </div>
   );
 }
-
 function LiveStatsPanel() {
   return (
     <section className="panel live-stats-panel" aria-label="Live game stats">
@@ -215,7 +202,6 @@ function LiveStatsPanel() {
     </section>
   );
 }
-
 function BetSlipPanel() {
   return (
     <section className="panel bet-slip" aria-label="Bet slip">
@@ -265,7 +251,6 @@ function BetSlipPanel() {
     </section>
   );
 }
-
 function RecentBetsPanel() {
   const outcomes = ['W', 'W', 'L', 'W', 'W', 'W', 'L', 'W', 'W', 'W'];
   return (
@@ -284,7 +269,6 @@ function RecentBetsPanel() {
     </section>
   );
 }
-
 function PerformancePanel() {
   return (
     <section className="panel compact-panel performance-panel">
@@ -306,7 +290,6 @@ function PerformancePanel() {
     </section>
   );
 }
-
 function DashboardRightRail() {
   return (
     <div className="rail-stack">
@@ -316,7 +299,6 @@ function DashboardRightRail() {
     </div>
   );
 }
-
 function LiveCard({ card, onOpen }: { card: EventCard; onOpen: (id: number) => void }) {
   return (
     <article className="live-card">
@@ -347,13 +329,11 @@ function LiveCard({ card, onOpen }: { card: EventCard; onOpen: (id: number) => v
     </article>
   );
 }
-
 function UpcomingTable({ events, marketsByEvent }: { events: SportEvent[]; marketsByEvent: Record<number, Market[]> }) {
   const rows = [
     ...events.slice(0, 4),
     ...fallbackEvents.filter((event) => !events.some((realEvent) => realEvent.name === event.name)),
   ].slice(0, 4);
-
   return (
     <section className="dashboard-section upcoming-panel">
       <div className="section-heading">
@@ -390,16 +370,13 @@ function UpcomingTable({ events, marketsByEvent }: { events: SportEvent[]; marke
     </section>
   );
 }
-
 export default function HomePage() {
   const navigate = useNavigate();
   const [events, setEvents] = useState<SportEvent[]>([]);
   const [marketsByEvent, setMarketsByEvent] = useState<Record<number, Market[]>>({});
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     let mounted = true;
-
     const loadData = async () => {
       try {
         const nextEvents = await eventsApi.getEvents({ limit: 8 });
@@ -413,7 +390,6 @@ export default function HomePage() {
             }
           })
         );
-
         if (!mounted) return;
         setEvents(nextEvents);
         setMarketsByEvent(Object.fromEntries(marketEntries));
@@ -425,29 +401,23 @@ export default function HomePage() {
         if (mounted) setLoading(false);
       }
     };
-
     loadData();
-
     return () => {
       mounted = false;
     };
   }, []);
-
   const displayEvents = events.length ? events : fallbackEvents;
   const featuredEvent = displayEvents[0];
   const featuredMarket = marketsByEvent[featuredEvent.id]?.[0];
   const featuredOdds = normalizeOdds(featuredMarket);
   const [featuredTeamA, featuredTeamB] = splitEventName(featuredEvent.name);
-
   const liveCards = useMemo(() => {
     const realCards = displayEvents.slice(0, 4).map((event, index) => toEventCard(event, marketsByEvent[event.id]?.[0], index));
     return [...realCards, ...fallbackLiveCards].slice(0, 4);
   }, [displayEvents, marketsByEvent]);
-
   const openEvent = (id: number) => {
     if (id > 0) navigate(`/events/${id}`);
   };
-
   return (
     <AppShell activePage="Dashboard" rightRail={<DashboardRightRail />}>
       {loading ? (
@@ -458,6 +428,7 @@ export default function HomePage() {
         </div>
       ) : (
         <div className="dashboard-home">
+          <DevControlsPanel />
           <h1 className="sr-only">SportBets Dashboard</h1>
           <section className="spotlight-grid">
             <article className="panel featured-event">
@@ -471,7 +442,6 @@ export default function HomePage() {
                   Watch Live
                 </button>
               </div>
-
               <div className="matchup">
                 <div className="team-block">
                   <BasketballMark variant="blue" />
@@ -489,7 +459,6 @@ export default function HomePage() {
                   <p>30-16</p>
                 </div>
               </div>
-
               <div className="featured-odds">
                 {featuredOdds.map((odd, index) => (
                   <button type="button" key={`${odd.label}-${index}`}>
@@ -499,16 +468,13 @@ export default function HomePage() {
                   </button>
                 ))}
               </div>
-
               <button className="wide-action" type="button" onClick={() => openEvent(featuredEvent.id)}>
                 View All Markets ({Math.max(12, featuredMarket?.odds.length || 128)})
                 <span aria-hidden="true">&gt;</span>
               </button>
             </article>
-
             <LiveStatsPanel />
           </section>
-
           <section className="dashboard-section">
             <div className="section-heading">
               <h2>Live Now</h2>
@@ -520,10 +486,148 @@ export default function HomePage() {
               ))}
             </div>
           </section>
-
           <UpcomingTable events={displayEvents} marketsByEvent={marketsByEvent} />
         </div>
       )}
     </AppShell>
+  );
+}
+function DevControlsPanel() {
+  const [generatedEventId, setGeneratedEventId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const handleGenerateRace = async () => {
+    setLoading(true);
+    setMessage('');
+    try {
+      const result = await devApi.generateRace();
+      setGeneratedEventId(result.eventId);
+      setMessage(`Generated race #${result.eventId} with ${result.runners.length} horses`);
+    } catch (error: any) {
+      setMessage(`Error: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleSettleRace = async () => {
+    if (!generatedEventId) return;
+    setLoading(true);
+    setMessage('');
+    try {
+      const result = await devApi.settleRace(generatedEventId);
+      setMessage(`Race settled! Winner: Horse #${result.winningHorseId}, ${result.settledBets} bets settled`);
+    } catch (error: any) {
+      setMessage(`Error: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleRunRace = async () => {
+    if (!generatedEventId) return;
+    setLoading(true);
+    setMessage('');
+    try {
+      const result = await devApi.runRace(generatedEventId);
+      setMessage(`Race simulation started! ID: ${result.simulationId}`);
+    } catch (error: any) {
+      setMessage(`Error: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <section className="panel dev-controls-panel" style={{ border: '2px solid #4f5cff', background: '#f0f3ff' }}>
+      <div className="panel-heading-row">
+        <h2 style={{ color: '#4f5cff' }}>🎮 Dev Controls</h2>
+      </div>
+      {message && (
+        <div style={{ padding: '8px 12px', marginBottom: '12px', borderRadius: '4px', background: message.startsWith('Error') ? '#fee2e2' : '#dcfce7', color: message.startsWith('Error') ? '#991b1b' : '#166534', fontSize: '13px' }}>
+          {message}
+        </div>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <button
+          type="button"
+          onClick={handleGenerateRace}
+          disabled={loading}
+          style={{
+            padding: '10px 16px',
+            borderRadius: '6px',
+            border: 'none',
+            background: '#4f5cff',
+            color: 'white',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.6 : 1,
+          }}
+        >
+          {loading ? 'Generating...' : '🐴 Generate Horse Race'}
+        </button>
+        {generatedEventId && (
+          <>
+            <div style={{ padding: '8px 12px', borderRadius: '4px', background: 'white', fontSize: '12px' }}>
+              <strong>Generated Race:</strong> #{generatedEventId}
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={handleSettleRace}
+                disabled={loading}
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: '#22c55e',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.6 : 1,
+                }}
+              >
+                ⚡ Instant Settle
+              </button>
+              <button
+                type="button"
+                onClick={handleRunRace}
+                disabled={loading}
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: '#f59e0b',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.6 : 1,
+                }}
+              >
+                🏃 Run 30s Sim
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => window.location.href = `/events/${generatedEventId}`}
+              style={{
+                padding: '8px 12px',
+                borderRadius: '6px',
+                border: '1px solid #4f5cff',
+                background: 'white',
+                color: '#4f5cff',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+            >
+              📋 Open Race Page
+            </button>
+          </>
+        )}
+      </div>
+    </section>
   );
 }

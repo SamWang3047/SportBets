@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AppShell from '../components/AppShell';
-import { betsApi, eventsApi } from '../services/api';
+import { betsApi, eventsApi, devApi } from '../services/api';
 import type { Event, Market } from '../types';
 
 type SelectedOdds = {
@@ -43,6 +43,8 @@ export default function EventDetailPage() {
   const [placingBet, setPlacingBet] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [devMessage, setDevMessage] = useState('');
+  const [devLoading, setDevLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -110,6 +112,46 @@ export default function EventDetailPage() {
       setError(getApiErrorMessage(err, 'Failed to place bet.'));
     } finally {
       setPlacingBet(false);
+    }
+  };
+
+  const handleSettleRace = async () => {
+    if (!event || !eventId) return;
+    setDevLoading(true);
+    setDevMessage('');
+    try {
+      const result = await devApi.settleRace(parseInt(eventId));
+      setDevMessage(`Race settled! Winner: Horse #${result.winningHorseId}, ${result.settledBets} bets settled`);
+      // Reload event data
+      const [updatedEvent] = await Promise.all([
+        eventsApi.getEvent(parseInt(eventId)),
+        eventsApi.getEventMarkets(parseInt(eventId)),
+      ]);
+      setEvent(updatedEvent);
+    } catch (err: unknown) {
+      setDevMessage(getApiErrorMessage(err, 'Failed to settle race.'));
+    } finally {
+      setDevLoading(false);
+    }
+  };
+
+  const handleRunRace = async () => {
+    if (!event || !eventId) return;
+    setDevLoading(true);
+    setDevMessage('');
+    try {
+      const result = await devApi.runRace(parseInt(eventId));
+      setDevMessage(`Race simulation started! ID: ${result.simulationId}`);
+      // Reload event data
+      const [updatedEvent] = await Promise.all([
+        eventsApi.getEvent(parseInt(eventId)),
+        eventsApi.getEventMarkets(parseInt(eventId)),
+      ]);
+      setEvent(updatedEvent);
+    } catch (err: unknown) {
+      setDevMessage(getApiErrorMessage(err, 'Failed to run race.'));
+    } finally {
+      setDevLoading(false);
     }
   };
 
@@ -242,6 +284,56 @@ export default function EventDetailPage() {
                   </form>
                 ) : (
                   <p>Select a market price to build your bet slip.</p>
+                )}
+
+                {/* Dev Controls */}
+                {event && event.status !== 'finished' && (
+                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
+                    <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', color: '#4f5cff' }}>🎮 Dev Controls</h3>
+                    {devMessage && (
+                      <div style={{ padding: '8px 12px', marginBottom: '12px', borderRadius: '4px', background: devMessage.startsWith('Error') ? '#fee2e2' : '#dcfce7', color: devMessage.startsWith('Error') ? '#991b1b' : '#166534', fontSize: '12px' }}>
+                        {devMessage}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <button
+                        type="button"
+                        onClick={handleSettleRace}
+                        disabled={devLoading}
+                        style={{
+                          padding: '8px 12px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          background: '#22c55e',
+                          color: 'white',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          cursor: devLoading ? 'not-allowed' : 'pointer',
+                          opacity: devLoading ? 0.6 : 1,
+                        }}
+                      >
+                        ⚡ Instant Settle
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRunRace}
+                        disabled={devLoading}
+                        style={{
+                          padding: '8px 12px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          background: '#f59e0b',
+                          color: 'white',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          cursor: devLoading ? 'not-allowed' : 'pointer',
+                          opacity: devLoading ? 0.6 : 1,
+                        }}
+                      >
+                        🏃 Run 30s Sim
+                      </button>
+                    </div>
+                  </div>
                 )}
               </aside>
             </div>

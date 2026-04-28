@@ -106,3 +106,31 @@ export const walletApi = {
 };
 
 export default api;
+
+// Dev API (only available in development)
+export const devApi = {
+  generateRace: async () => {
+    const response = await api.post('/dev/races/generate');
+    return response.data;
+  },
+
+  getRaceRunners: async (eventId: number) => {
+    const response = await api.get(`/dev/races/${eventId}/runners`);
+    return response.data;
+  },
+
+  settleRace: async (eventId: number) => {
+    const response = await api.post(`/dev/races/${eventId}/settle`);
+    return response.data;
+  },
+
+  runRace: async (eventId: number) => {
+    const response = await api.post(`/dev/races/${eventId}/run`);
+    return response.data;
+  },
+
+  getSimulationState: async (eventId: number) => {
+    const response = await api.get(`/dev/races/${eventId}/simulation`);
+    return response.data;
+  },
+};

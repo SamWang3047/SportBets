@@ -9,6 +9,7 @@ import eventsRoutes from './routes/events.routes';
 import betsRoutes from './routes/bets.routes';
 import walletRoutes from './routes/wallet.routes';
 import adminRoutes from './routes/admin.routes';
+import devRoutes from './routes/dev.routes';
 import { initializeSocket } from './sockets';
 
 console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET');
@@ -32,6 +33,7 @@ app.use('/api', eventsRoutes);
 app.use('/api/bets', betsRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/dev', devRoutes);
 
 // Create HTTP server and initialize Socket.io
 const httpServer = createServer(app);
