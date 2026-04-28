@@ -38,3 +38,6 @@ dist-ssr
 # Backend specific
 backend/dist
 backend/node_modules
+
+# Claude Code agents
+.agents/skills
