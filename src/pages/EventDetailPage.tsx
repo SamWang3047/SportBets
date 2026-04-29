@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import AppShell from '../components/AppShell';
 import { betsApi, eventsApi } from '../services/api';
 import type { Event, Market, RaceRunner, RaceSimulationState } from '../types';
@@ -9,6 +9,11 @@ type SelectedOdds = {
   selectionId: string;
   selectionName: string;
   odds: number;
+};
+
+type EventDetailRouteState = {
+  sourcePage?: 'Upcoming' | 'Live' | 'Dashboard';
+  selectedOdds?: SelectedOdds;
 };
 
 const HORSE_COLORS = ['#4f5cff', '#f97316', '#0ea5e9', '#16a34a', '#dc2626', '#8b5cf6', '#ca8a04', '#0f766e'];
@@ -94,10 +99,14 @@ function RaceFieldPanel({ event, runners }: { event: Event; runners: RaceRunner[
 export default function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const routeState = location.state as EventDetailRouteState | null;
+  const sourcePage = routeState?.sourcePage;
+  const routeSelectedOdds = routeState?.selectedOdds;
   const [event, setEvent] = useState<Event | null>(null);
   const [markets, setMarkets] = useState<Market[]>([]);
   const [runners, setRunners] = useState<RaceRunner[]>([]);
-  const [selectedOdds, setSelectedOdds] = useState<SelectedOdds | null>(null);
+  const [selectedOdds, setSelectedOdds] = useState<SelectedOdds | null>(() => routeSelectedOdds || null);
   const [stake, setStake] = useState('100');
   const [loading, setLoading] = useState(true);
   const [placingBet, setPlacingBet] = useState(false);
@@ -178,10 +187,10 @@ export default function EventDetailPage() {
   };
 
   return (
-    <AppShell activePage="Live">
+    <AppShell activePage={sourcePage || 'Live'}>
       <div className="workspace-page">
-        <button className="back-link" type="button" onClick={() => navigate('/')}>
-          Back to Dashboard
+        <button className="back-link" type="button" onClick={() => navigate(sourcePage === 'Upcoming' ? '/upcoming' : '/')}>
+          Back to {sourcePage || 'Dashboard'}
         </button>
 
         {loading ? (

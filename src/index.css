@@ -1655,6 +1655,156 @@ button:disabled {
   white-space: nowrap;
 }
 
+.upcoming-page {
+  gap: 18px;
+}
+
+.upcoming-race-list {
+  display: grid;
+  gap: 12px;
+}
+
+.upcoming-race-card {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.upcoming-race-time {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  padding: 18px;
+  border-right: 1px solid var(--border);
+  background: #fbfcff;
+}
+
+.upcoming-race-time span {
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.upcoming-race-time strong {
+  color: #111827;
+  font-size: 18px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.upcoming-race-main {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px;
+}
+
+.upcoming-race-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.upcoming-race-heading h2 {
+  margin: 8px 0 0;
+  color: #111827;
+  font-size: 19px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.upcoming-race-heading .secondary-action {
+  width: max-content;
+  min-width: 104px;
+  padding: 0 14px;
+}
+
+.upcoming-race-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.upcoming-race-meta span {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 6px;
+  background: #eef1f6;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.upcoming-odds-preview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.upcoming-odds-preview button {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: #1f2937;
+  background: #fff;
+  text-align: left;
+}
+
+.upcoming-odds-preview button:hover {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.upcoming-odds-preview button > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.upcoming-odds-preview strong {
+  overflow: hidden;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upcoming-odds-preview em {
+  overflow: hidden;
+  color: #667085;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upcoming-odds-preview b {
+  color: var(--accent-strong);
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.upcoming-empty-preview {
+  grid-column: 1 / -1;
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: #667085;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .event-detail-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
@@ -2033,9 +2183,15 @@ button:disabled {
   }
 
   .event-detail-grid,
+  .upcoming-race-card,
   .wallet-overview,
   .login-shell {
     grid-template-columns: 1fr;
+  }
+
+  .upcoming-race-time {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
   }
 
   .history-panel {
@@ -2111,7 +2267,8 @@ button:disabled {
   .hero-odds-strip,
   .event-hero-panel,
   .live-card-grid,
-  .live-race-grid {
+  .live-race-grid,
+  .upcoming-odds-preview {
     grid-template-columns: 1fr;
   }
 
@@ -2124,6 +2281,14 @@ button:disabled {
   .page-title-row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .upcoming-race-heading {
+    flex-direction: column;
+  }
+
+  .upcoming-race-heading .secondary-action {
+    width: 100%;
   }
 
   .top-actions {
@@ -2145,6 +2310,8 @@ button:disabled {
   .quick-bet-panel,
   .live-race-card-main,
   .race-field-panel,
+  .upcoming-race-main,
+  .upcoming-race-time,
   .login-card,
   .login-preview {
     padding: 14px;

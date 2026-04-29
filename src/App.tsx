@@ -7,6 +7,7 @@ import BetsPage from './pages/BetsPage';
 import WalletPage from './pages/WalletPage';
 import SettingsPage from './pages/SettingsPage';
 import LivePage from './pages/LivePage';
+import UpcomingPage from './pages/UpcomingPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -39,6 +40,14 @@ function App() {
           element={
             <ProtectedRoute>
               <LivePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/upcoming"
+          element={
+            <ProtectedRoute>
+              <UpcomingPage />
             </ProtectedRoute>
           }
         />
