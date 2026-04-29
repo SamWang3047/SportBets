@@ -52,19 +52,19 @@ export default function LoginPage() {
           <div className="featured-topline">
             <div>
               <span className="live-pill">LIVE</span>
-              <span>Football - League Play</span>
+              <span>Horse Racing - Race Winner</span>
             </div>
             <button type="button">Preview</button>
           </div>
           <div className="login-score">
-            <span>City United</span>
-            <strong>2 - 1</strong>
-            <span>Harbor FC</span>
+            <span>Golden Sprint Stakes</span>
+            <strong>6 runners</strong>
+            <span>Riverside Track</span>
           </div>
           <div className="featured-odds">
-            <button type="button"><span>City United</span><strong>home</strong><em>1.72</em></button>
-            <button type="button"><span>Draw</span><strong>draw</strong><em>3.80</em></button>
-            <button type="button"><span>Harbor FC</span><strong>away</strong><em>2.10</em></button>
+            <button type="button"><span>Thunder Strike</span><strong>1</strong><em>3.50</em></button>
+            <button type="button"><span>Silver Bullet</span><strong>2</strong><em>2.80</em></button>
+            <button type="button"><span>Golden Gale</span><strong>4</strong><em>3.80</em></button>
           </div>
         </div>
       </section>

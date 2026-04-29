@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../components/AppShell';
-import { eventsApi, devApi } from '../services/api';
+import { eventsApi } from '../services/api';
 import type { Event as SportEvent, Market } from '../types';
 
 
@@ -19,8 +19,8 @@ type EventCard = {
 const fallbackEvents: SportEvent[] = [
   {
     id: -1,
-    sportId: 1,
-    name: 'Northside vs Southridge',
+    sportId: 2,
+    name: 'Golden Sprint Stakes',
     status: 'live',
     startTime: new Date().toISOString(),
     createdAt: new Date().toISOString(),
@@ -28,8 +28,8 @@ const fallbackEvents: SportEvent[] = [
   },
   {
     id: -2,
-    sportId: 1,
-    name: 'City United vs Harbor FC',
+    sportId: 2,
+    name: 'Harbor Trial Plate',
     status: 'scheduled',
     startTime: new Date(Date.now() + 90 * 60 * 1000).toISOString(),
     createdAt: new Date().toISOString(),
@@ -38,7 +38,7 @@ const fallbackEvents: SportEvent[] = [
   {
     id: -3,
     sportId: 2,
-    name: 'Golden Sprint Stakes',
+    name: 'Riverside Cup',
     status: 'scheduled',
     startTime: new Date(Date.now() + 150 * 60 * 1000).toISOString(),
     createdAt: new Date().toISOString(),
@@ -48,67 +48,69 @@ const fallbackEvents: SportEvent[] = [
 const fallbackLiveCards: EventCard[] = [
   {
     id: -10,
-    sport: 'Basketball',
-    time: 'Q3 04:32',
-    teamA: 'Northside',
-    teamB: 'Southridge',
-    scoreA: 78,
-    scoreB: 72,
-    marketCount: 128,
+    sport: 'Horse Racing',
+    time: 'Live',
+    teamA: 'Golden Sprint Stakes',
+    teamB: 'Race Winner',
+    scoreA: 6,
+    scoreB: 1,
+    marketCount: 96,
     odds: [
-      { label: 'ML', value: '1.90' },
-      { label: 'Spread', value: '-2.5 1.90' },
-      { label: 'Total', value: '215.5 1.91' },
+      { label: 'Thunder Strike', value: '3.50' },
+      { label: 'Silver Bullet', value: '2.80' },
+      { label: 'Golden Gale', value: '3.80' },
     ],
   },
   {
     id: -11,
-    sport: 'Football',
-    time: 'Q2 07:15',
-    teamA: 'Lions',
-    teamB: 'Tigers',
-    scoreA: 17,
-    scoreB: 14,
-    marketCount: 95,
+    sport: 'Horse Racing',
+    time: 'Soon',
+    teamA: 'Harbor Trial Plate',
+    teamB: 'Race Winner',
+    scoreA: 8,
+    scoreB: 1,
+    marketCount: 84,
     odds: [
-      { label: 'ML', value: '1.88' },
-      { label: 'Spread', value: '-3.5 1.90' },
-      { label: 'Total', value: '48.5 1.92' },
+      { label: 'Wind Dancer', value: '6.50' },
+      { label: 'Storm Chaser', value: '5.00' },
+      { label: 'Midnight Runner', value: '4.20' },
     ],
   },
   {
     id: -12,
-    sport: 'Tennis',
-    time: '2nd Set',
-    teamA: 'A. Johnson',
-    teamB: 'M. Petrova',
-    scoreA: 40,
-    scoreB: 30,
-    marketCount: 67,
+    sport: 'Horse Racing',
+    time: 'Today',
+    teamA: 'Riverside Cup',
+    teamB: 'Race Winner',
+    scoreA: 7,
+    scoreB: 1,
+    marketCount: 72,
     odds: [
-      { label: 'Winner', value: '1.40' },
-      { label: 'Set Winner', value: '2.85' },
+      { label: 'Silver Bullet', value: '2.80' },
+      { label: 'Thunder Strike', value: '3.50' },
+      { label: 'Storm Chaser', value: '5.00' },
     ],
   },
   {
     id: -13,
-    sport: 'Esports',
-    time: 'Map 2',
-    teamA: 'Team Alpha',
-    teamB: 'Team Beta',
+    sport: 'Horse Racing',
+    time: 'Tomorrow',
+    teamA: 'Metro Mile',
+    teamB: 'Race Winner',
     scoreA: 9,
-    scoreB: 7,
-    marketCount: 42,
+    scoreB: 1,
+    marketCount: 64,
     odds: [
-      { label: 'Alpha', value: '1.35' },
-      { label: 'Beta', value: '2.90' },
+      { label: 'Golden Gale', value: '3.80' },
+      { label: 'Wind Dancer', value: '6.50' },
+      { label: 'Midnight Runner', value: '4.20' },
     ],
   },
 ];
 const featuredFallbackOdds = [
-  { selectionName: 'Northside', selectionId: 'home', decimalOdds: 1.9 },
-  { selectionName: 'Total', selectionId: 'total', decimalOdds: 1.91 },
-  { selectionName: 'Southridge', selectionId: 'away', decimalOdds: 1.9 },
+  { selectionName: 'Thunder Strike', selectionId: '1', decimalOdds: 3.5 },
+  { selectionName: 'Silver Bullet', selectionId: '2', decimalOdds: 2.8 },
+  { selectionName: 'Golden Gale', selectionId: '4', decimalOdds: 3.8 },
 ];
 function splitEventName(name: string) {
   const parts = name.split(/\s+vs\s+/i);
@@ -125,17 +127,14 @@ function formatStartLabel(value: string) {
     minute: '2-digit',
   });
 }
-function getSportLabel(event: SportEvent) {
-  if (event.name.toLowerCase().includes('stakes') || event.name.toLowerCase().includes('sprint')) {
-    return 'Horse Racing';
-  }
-  return event.sportId === 2 ? 'Horse Racing' : 'Football';
+function getSportLabel() {
+  return 'Horse Racing';
 }
 function normalizeOdds(market?: Market) {
   const source = market?.odds?.length ? market.odds : featuredFallbackOdds;
-  return source.slice(0, 3).map((odd, index) => ({
-    label: index === 1 && odd.selectionName === 'Draw' ? 'Draw' : odd.selectionName,
-    subtitle: index === 1 && odd.selectionName !== 'Draw' ? 'Total' : odd.selectionId,
+  return source.slice(0, 3).map((odd) => ({
+    label: odd.selectionName,
+    subtitle: odd.selectionId,
     value: odd.decimalOdds.toFixed(2),
   }));
 }
@@ -144,22 +143,22 @@ function toEventCard(event: SportEvent, market?: Market, index = 0): EventCard {
   const odds = normalizeOdds(market).map((odd) => ({ label: odd.label, value: odd.value }));
   return {
     id: event.id,
-    sport: getSportLabel(event),
+    sport: getSportLabel(),
     time: event.status === 'live' ? 'Live' : formatStartLabel(event.startTime),
     teamA,
     teamB,
-    scoreA: event.status === 'live' ? 17 + index * 3 : 0,
-    scoreB: event.status === 'live' ? 14 + index * 2 : 0,
+    scoreA: Math.max(3, market?.odds?.length || 6),
+    scoreB: index + 1,
     marketCount: Math.max(12, (market?.odds?.length || 3) * 32 + index * 9),
     odds,
   };
 }
-function BasketballMark({ variant = 'blue' }: { variant?: 'blue' | 'purple' }) {
+function RaceSilkMark({ variant = 'blue' }: { variant?: 'blue' | 'purple' }) {
   return (
     <div className={`ball-mark ${variant}`}>
       <svg viewBox="0 0 44 44" aria-hidden="true">
-        <circle cx="22" cy="22" r="17" />
-        <path d="M8 22h28M22 5v34M10 12c7 2 13 8 16 24M34 12c-7 2-13 8-16 24" />
+        <path d="M14 9h16l5 9-6 4v13H15V22l-6-4 5-9Z" />
+        <path d="M18 10v25M26 10v25M12 18h20" />
       </svg>
     </div>
   );
@@ -184,19 +183,19 @@ function StatRow({ label, left, right, split = 50 }: { label: string; left: stri
 }
 function LiveStatsPanel() {
   return (
-    <section className="panel live-stats-panel" aria-label="Live game stats">
-      <h2>Live Game Stats</h2>
+    <section className="panel live-stats-panel" aria-label="Race conditions">
+      <h2>Race Conditions</h2>
       <div className="stat-teams">
-        <span>NOR</span>
-        <span>SOU</span>
+        <span>Track</span>
+        <span>Field</span>
       </div>
-      <StatRow label="FG%" left="48%" right="45%" split={49} />
-      <StatRow label="3PT%" left="36%" right="38%" split={59} />
-      <StatRow label="REB" left="34" right="31" split={53} />
-      <StatRow label="AST" left="19" right="17" split={50} />
-      <StatRow label="TO" left="8" right="9" split={48} />
+      <StatRow label="Pace" left="Fast" right="Even" split={58} />
+      <StatRow label="Going" left="Good" right="Firm" split={62} />
+      <StatRow label="Runners" left="6" right="Open" split={48} />
+      <StatRow label="Distance" left="1200m" right="Sprint" split={55} />
+      <StatRow label="Market" left="96" right="Live" split={66} />
       <button className="link-button" type="button">
-        View Full Stats
+        View Race Detail
         <span aria-hidden="true">&gt;</span>
       </button>
     </section>
@@ -211,13 +210,13 @@ function BetSlipPanel() {
       </div>
       <div className="segmented-tabs">
         <button className="is-active" type="button">Singles</button>
-        <button type="button">Parlay</button>
-        <button type="button">System</button>
+        <button type="button">Exacta</button>
+        <button type="button">Trifecta</button>
       </div>
       {[
-        ['Northside -2.5', 'Spread', 'Northside vs Southridge', '1.90'],
-        ['Over 215.5', 'Total Points', 'Northside vs Southridge', '1.91'],
-        ['City United', 'Moneyline', 'City United vs Harbor FC', '1.72'],
+        ['Thunder Strike', 'Race Winner', 'Golden Sprint Stakes', '3.50'],
+        ['Silver Bullet', 'Race Winner', 'Harbor Trial Plate', '2.80'],
+        ['Golden Gale', 'Race Winner', 'Riverside Cup', '3.80'],
       ].map(([title, type, event, odd]) => (
         <div className="bet-slip-row" key={title}>
           <button type="button" aria-label={`Remove ${title}`}>x</button>
@@ -230,8 +229,8 @@ function BetSlipPanel() {
         </div>
       ))}
       <div className="boost-row">
-        <span>Parlay Boost <strong>5%</strong></span>
-        <button className="toggle is-on" type="button" aria-label="Parlay boost enabled" />
+        <span>Race Boost <strong>5%</strong></span>
+        <button className="toggle is-on" type="button" aria-label="Race boost enabled" />
       </div>
       <div className="stake-row">
         <label htmlFor="stake">Stake</label>
@@ -357,8 +356,8 @@ function UpcomingTable({ events, marketsByEvent }: { events: SportEvent[]; marke
           return (
             <div className="market-table-row" role="row" key={`${event.id}-${index}`}>
               <span>{index === 3 ? 'Tomorrow' : 'Today'}<strong>{formatStartLabel(event.startTime)}</strong></span>
-              <span><MiniSportIcon sport={getSportLabel(event)} /><strong>{teamA}</strong><small>{teamB}</small></span>
-              <span>{market?.name || (getSportLabel(event) === 'Football' ? '1X2' : 'Winner')}</span>
+              <span><MiniSportIcon sport={getSportLabel()} /><strong>{teamA}</strong><small>{teamB}</small></span>
+              <span>{market?.name || 'Race Winner'}</span>
               {[0, 1, 2].map((slot) => (
                 <button type="button" key={slot}>{odds[slot]?.value || '-'}</button>
               ))}
@@ -375,11 +374,14 @@ export default function HomePage() {
   const [events, setEvents] = useState<SportEvent[]>([]);
   const [marketsByEvent, setMarketsByEvent] = useState<Record<number, Market[]>>({});
   const [loading, setLoading] = useState(true);
+  const [horseRacingSportId, setHorseRacingSportId] = useState<number | null>(null);
   useEffect(() => {
     let mounted = true;
     const loadData = async () => {
       try {
-        const nextEvents = await eventsApi.getEvents({ limit: 8 });
+        const sports = await eventsApi.getSports();
+        const horseRacingSport = sports.find((sport: { code: string }) => sport.code === 'horse_racing');
+        const nextEvents = await eventsApi.getEvents({ sportId: horseRacingSport?.id, limit: 8 });
         const marketEntries = await Promise.all(
           nextEvents.slice(0, 6).map(async (event) => {
             try {
@@ -391,6 +393,7 @@ export default function HomePage() {
           })
         );
         if (!mounted) return;
+        setHorseRacingSportId(horseRacingSport?.id ?? null);
         setEvents(nextEvents);
         setMarketsByEvent(Object.fromEntries(marketEntries));
       } catch {
@@ -406,15 +409,14 @@ export default function HomePage() {
       mounted = false;
     };
   }, []);
-  const displayEvents = events.length ? events : fallbackEvents;
-  const featuredEvent = displayEvents[0];
+  const displayEvents = events.filter((event) => !horseRacingSportId || event.sportId === horseRacingSportId);
+  const raceEvents = displayEvents.length ? displayEvents : fallbackEvents;
+  const featuredEvent = raceEvents[0];
   const featuredMarket = marketsByEvent[featuredEvent.id]?.[0];
   const featuredOdds = normalizeOdds(featuredMarket);
   const [featuredTeamA, featuredTeamB] = splitEventName(featuredEvent.name);
-  const liveCards = useMemo(() => {
-    const realCards = displayEvents.slice(0, 4).map((event, index) => toEventCard(event, marketsByEvent[event.id]?.[0], index));
-    return [...realCards, ...fallbackLiveCards].slice(0, 4);
-  }, [displayEvents, marketsByEvent]);
+  const realCards = raceEvents.slice(0, 4).map((event, index) => toEventCard(event, marketsByEvent[event.id]?.[0], index));
+  const liveCards = [...realCards, ...fallbackLiveCards].slice(0, 4);
   const openEvent = (id: number) => {
     if (id > 0) navigate(`/events/${id}`);
   };
@@ -428,14 +430,13 @@ export default function HomePage() {
         </div>
       ) : (
         <div className="dashboard-home">
-          <DevControlsPanel />
           <h1 className="sr-only">SportBets Dashboard</h1>
           <section className="spotlight-grid">
             <article className="panel featured-event">
               <div className="featured-topline">
                 <div>
                   <span className="live-pill">LIVE</span>
-                  <span>{getSportLabel(featuredEvent)} - League Play</span>
+                  <span>{getSportLabel()} - Race Winner</span>
                 </div>
                 <button type="button">
                   <span className="play-icon" aria-hidden="true" />
@@ -444,26 +445,26 @@ export default function HomePage() {
               </div>
               <div className="matchup">
                 <div className="team-block">
-                  <BasketballMark variant="blue" />
+                  <RaceSilkMark variant="blue" />
                   <h2>{featuredTeamA}</h2>
-                  <p>32-14</p>
+                  <p>1200m</p>
                 </div>
                 <div className="score-block">
-                  <span>Q3 <strong>04:32</strong></span>
-                  <strong>78 - 72</strong>
-                  <p>Riverside Arena</p>
+                  <span>Next <strong>{formatStartLabel(featuredEvent.startTime)}</strong></span>
+                  <strong>{featuredOdds.length} runners</strong>
+                  <p>Riverside Track</p>
                 </div>
                 <div className="team-block">
-                  <BasketballMark variant="purple" />
+                  <RaceSilkMark variant="purple" />
                   <h2>{featuredTeamB}</h2>
-                  <p>30-16</p>
+                  <p>Open market</p>
                 </div>
               </div>
               <div className="featured-odds">
                 {featuredOdds.map((odd, index) => (
                   <button type="button" key={`${odd.label}-${index}`}>
                     <span>{odd.label}</span>
-                    <strong>{index === 1 && odd.label === 'Total' ? '215.5' : odd.subtitle}</strong>
+                    <strong>{odd.subtitle}</strong>
                     <em>{odd.value}</em>
                   </button>
                 ))}
@@ -486,148 +487,9 @@ export default function HomePage() {
               ))}
             </div>
           </section>
-          <UpcomingTable events={displayEvents} marketsByEvent={marketsByEvent} />
+          <UpcomingTable events={raceEvents} marketsByEvent={marketsByEvent} />
         </div>
       )}
     </AppShell>
-  );
-}
-function DevControlsPanel() {
-  const [generatedEventId, setGeneratedEventId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const handleGenerateRace = async () => {
-    setLoading(true);
-    setMessage('');
-    try {
-      const result = await devApi.generateRace();
-      setGeneratedEventId(result.eventId);
-      setMessage(`Generated race #${result.eventId} with ${result.runners.length} horses`);
-    } catch (error: any) {
-      setMessage(`Error: ${error.response?.data?.error || error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const handleSettleRace = async () => {
-    if (!generatedEventId) return;
-    setLoading(true);
-    setMessage('');
-    try {
-      const result = await devApi.settleRace(generatedEventId);
-      setMessage(`Race settled! Winner: Horse #${result.winningHorseId}, ${result.settledBets} bets settled`);
-    } catch (error: any) {
-      setMessage(`Error: ${error.response?.data?.error || error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const handleRunRace = async () => {
-    if (!generatedEventId) return;
-    setLoading(true);
-    setMessage('');
-    try {
-      const result = await devApi.runRace(generatedEventId);
-      setMessage(`Race simulation started! ID: ${result.simulationId}`);
-    } catch (error: any) {
-      setMessage(`Error: ${error.response?.data?.error || error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-  return (
-    <section className="panel dev-controls-panel" style={{ border: '2px solid #4f5cff', background: '#f0f3ff' }}>
-      <div className="panel-heading-row">
-        <h2 style={{ color: '#4f5cff' }}>🎮 Dev Controls</h2>
-      </div>
-      {message && (
-        <div style={{ padding: '8px 12px', marginBottom: '12px', borderRadius: '4px', background: message.startsWith('Error') ? '#fee2e2' : '#dcfce7', color: message.startsWith('Error') ? '#991b1b' : '#166534', fontSize: '13px' }}>
-          {message}
-        </div>
-      )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <button
-          type="button"
-          onClick={handleGenerateRace}
-          disabled={loading}
-          style={{
-            padding: '10px 16px',
-            borderRadius: '6px',
-            border: 'none',
-            background: '#4f5cff',
-            color: 'white',
-            fontSize: '13px',
-            fontWeight: '600',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.6 : 1,
-          }}
-        >
-          {loading ? 'Generating...' : '🐴 Generate Horse Race'}
-        </button>
-        {generatedEventId && (
-          <>
-            <div style={{ padding: '8px 12px', borderRadius: '4px', background: 'white', fontSize: '12px' }}>
-              <strong>Generated Race:</strong> #{generatedEventId}
-            </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={handleSettleRace}
-                disabled={loading}
-                style={{
-                  flex: 1,
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: '#22c55e',
-                  color: 'white',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.6 : 1,
-                }}
-              >
-                ⚡ Instant Settle
-              </button>
-              <button
-                type="button"
-                onClick={handleRunRace}
-                disabled={loading}
-                style={{
-                  flex: 1,
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: '#f59e0b',
-                  color: 'white',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.6 : 1,
-                }}
-              >
-                🏃 Run 30s Sim
-              </button>
-            </div>
-            <button
-              type="button"
-              onClick={() => window.location.href = `/events/${generatedEventId}`}
-              style={{
-                padding: '8px 12px',
-                borderRadius: '6px',
-                border: '1px solid #4f5cff',
-                background: 'white',
-                color: '#4f5cff',
-                fontSize: '12px',
-                fontWeight: '600',
-                cursor: 'pointer',
-              }}
-            >
-              📋 Open Race Page
-            </button>
-          </>
-        )}
-      </div>
-    </section>
   );
 }

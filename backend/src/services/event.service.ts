@@ -1,6 +1,6 @@
-import { events, sports, markets, odds, footballTeams, horses, jockeys, raceRunners } from '../db/schema';
+import { events, sports, markets, odds } from '../db/schema';
 import { db } from '../db';
-import { eq, and, desc, asc } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { eventStatusEnum } from '../db/schema';
 
 export interface Event {
@@ -32,8 +32,18 @@ export interface Odd {
   isActive: boolean;
 }
 
+async function getHorseRacingSport() {
+  const [horseRacingSport] = await db
+    .select()
+    .from(sports)
+    .where(eq(sports.code, 'horse_racing'))
+    .limit(1);
+
+  return horseRacingSport ?? null;
+}
+
 export async function getAllSports() {
-  const allSports = await db.select().from(sports);
+  const allSports = await db.select().from(sports).where(eq(sports.code, 'horse_racing'));
   return allSports;
 }
 
@@ -43,10 +53,17 @@ export async function getEvents(filters?: {
   limit?: number;
 }) {
   const conditions = [];
+  const horseRacingSport = await getHorseRacingSport();
 
-  if (filters?.sportId) {
-    conditions.push(eq(events.sportId, filters.sportId));
+  if (!horseRacingSport) {
+    return [];
   }
+
+  if (filters?.sportId && filters.sportId !== horseRacingSport.id) {
+    return [];
+  }
+
+  conditions.push(eq(events.sportId, horseRacingSport.id));
 
   if (filters?.status) {
     conditions.push(eq(events.status, filters.status as any));
@@ -71,6 +88,11 @@ export async function getEvents(filters?: {
 export async function getEventById(eventId: number) {
   const [event] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
   if (!event) {
+    return null;
+  }
+
+  const horseRacingSport = await getHorseRacingSport();
+  if (!horseRacingSport || event.sportId !== horseRacingSport.id) {
     return null;
   }
 

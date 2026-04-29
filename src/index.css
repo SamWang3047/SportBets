@@ -754,23 +754,6 @@ button:disabled {
   vertical-align: middle;
 }
 
-.mini-sport.basketball {
-  background: linear-gradient(135deg, #f97316, #fb923c);
-}
-
-.mini-sport.football {
-  background: linear-gradient(135deg, #1f2937, #64748b);
-}
-
-.mini-sport.tennis {
-  background: linear-gradient(135deg, #cddc39, #d9f99d);
-}
-
-.mini-sport.esports {
-  border-radius: 5px;
-  background: linear-gradient(135deg, #334155, #111827);
-}
-
 .mini-sport.horse-racing {
   background: linear-gradient(135deg, #8b5cf6, #06b6d4);
 }
@@ -1364,6 +1347,49 @@ button:disabled {
 .message-banner.error {
   color: #b42318;
   background: #fee4e2;
+}
+
+.dev-controls-panel {
+  max-width: 520px;
+  padding: 18px;
+  border: 2px solid var(--accent);
+  background: #f0f3ff;
+}
+
+.dev-controls-panel h2 {
+  margin: 0;
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.dev-control-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.generated-race-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.generated-race-summary strong {
+  color: #111827;
+}
+
+.dev-control-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .event-detail-grid {

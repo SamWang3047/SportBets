@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { events, sports, markets, odds, footballTeams, horses, jockeys, raceRunners } from '../db/schema';
+import { events, sports, markets, odds, horses, jockeys } from '../db/schema';
 import { db } from '../db';
 import { eq } from 'drizzle-orm';
-import { startHorseRaceSimulation, startFootballMatchSimulation, stopSimulation } from '../services/simulation.service';
+import { startHorseRaceSimulation, stopSimulation } from '../services/simulation.service';
 import { authenticate } from './auth.routes';
 
 const router = Router();
@@ -78,8 +78,6 @@ router.post('/events/:eventId/start', authenticate, adminOnly, async (req: Reque
 
     if (sport.code === 'horse_racing') {
       await startHorseRaceSimulation(eventId);
-    } else if (sport.code === 'football') {
-      await startFootballMatchSimulation(eventId);
     } else {
       return res.status(400).json({ error: 'Unsupported sport type' });
     }
@@ -144,21 +142,7 @@ router.post('/seed', authenticate, adminOnly, async (req: Request, res: Response
     const existingSports = await db.select().from(sports);
     if (existingSports.length === 0) {
       await db.insert(sports).values([
-        { code: 'football', name: 'Football' },
         { code: 'horse_racing', name: 'Horse Racing' },
-      ]);
-    }
-
-    // Create sample football teams
-    const existingTeams = await db.select().from(footballTeams);
-    if (existingTeams.length === 0) {
-      await db.insert(footballTeams).values([
-        { name: 'Manchester United', shortName: 'MUN', country: 'England', attackRating: 85, midfieldRating: 82, defenseRating: 80, formRating: 75 },
-        { name: 'Liverpool', shortName: 'LIV', country: 'England', attackRating: 88, midfieldRating: 85, defenseRating: 82, formRating: 80 },
-        { name: 'Chelsea', shortName: 'CHE', country: 'England', attackRating: 83, midfieldRating: 84, defenseRating: 85, formRating: 78 },
-        { name: 'Arsenal', shortName: 'ARS', country: 'England', attackRating: 84, midfieldRating: 86, defenseRating: 83, formRating: 82 },
-        { name: 'Real Madrid', shortName: 'RMA', country: 'Spain', attackRating: 90, midfieldRating: 88, defenseRating: 85, formRating: 85 },
-        { name: 'Barcelona', shortName: 'BAR', country: 'Spain', attackRating: 87, midfieldRating: 86, defenseRating: 84, formRating: 80 },
       ]);
     }
 
