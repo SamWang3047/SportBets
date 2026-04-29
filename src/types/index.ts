@@ -46,6 +46,38 @@ export interface Odd {
   isActive: boolean;
 }
 
+export interface RaceRunner {
+  id: number;
+  raceId: number;
+  horseId: number;
+  jockeyId: number;
+  stallNumber: number;
+  startingOdds: number;
+  finalPosition: number | null;
+  horseName: string;
+  jockeyName: string;
+}
+
+export interface RaceSimulationRanking {
+  horseId: number;
+  position: number;
+  distance: number;
+}
+
+export interface RaceSimulationState {
+  phase?: 'scheduled' | 'running' | 'finished';
+  progress?: number;
+  simulationId?: string;
+  startTime?: number;
+  estimatedEndTime?: number;
+  ranking?: RaceSimulationRanking[];
+  winner?: string;
+  finalPositions?: Array<{
+    horseId: number;
+    position: number;
+  }>;
+}
+
 export interface Bet {
   id: number;
   eventId: number;

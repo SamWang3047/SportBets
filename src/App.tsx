@@ -6,6 +6,7 @@ import EventDetailPage from './pages/EventDetailPage';
 import BetsPage from './pages/BetsPage';
 import WalletPage from './pages/WalletPage';
 import SettingsPage from './pages/SettingsPage';
+import LivePage from './pages/LivePage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -30,6 +31,14 @@ function App() {
           element={
             <ProtectedRoute>
               <EventDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/live"
+          element={
+            <ProtectedRoute>
+              <LivePage />
             </ProtectedRoute>
           }
         />

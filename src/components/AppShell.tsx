@@ -22,7 +22,7 @@ type IconName =
 
 const navItems = [
   { label: 'Dashboard', icon: 'home' as IconName, path: '/' },
-  { label: 'Live', icon: 'live' as IconName, path: '/' },
+  { label: 'Live', icon: 'live' as IconName, path: '/live' },
   { label: 'Upcoming', icon: 'calendar' as IconName, path: '/' },
   { label: 'My Bets', icon: 'bets' as IconName, path: '/bets', count: 3 },
   { label: 'Profile', icon: 'profile' as IconName, path: '/' },

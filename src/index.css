@@ -1392,6 +1392,229 @@ button:disabled {
   gap: 10px;
 }
 
+.live-page {
+  gap: 22px;
+}
+
+.live-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.live-summary span {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.live-race-section {
+  display: grid;
+  gap: 12px;
+}
+
+.live-race-section .section-heading p {
+  margin: 4px 0 0;
+  color: #667085;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.live-race-section .section-heading > span {
+  display: inline-flex;
+  min-width: 30px;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: #eef1f6;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.live-race-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.live-race-card {
+  padding: 0;
+  overflow: hidden;
+  border-left: 4px solid #98a2b3;
+}
+
+.live-race-card.scheduled {
+  border-left-color: var(--accent);
+}
+
+.live-race-card.live {
+  border-left-color: #16a34a;
+}
+
+.live-race-card.finished {
+  border-left-color: #667085;
+}
+
+.live-race-card-main {
+  display: grid;
+  width: 100%;
+  min-height: 246px;
+  padding: 16px;
+  gap: 14px;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+}
+
+.live-race-card-main h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 17px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.live-race-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.live-race-card-head > span:last-child {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.live-race-progress {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eef1f6;
+}
+
+.live-race-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4f5cff, #16a34a);
+  transition: width 180ms ease;
+}
+
+.live-race-top-three {
+  display: grid;
+  gap: 9px;
+}
+
+.live-race-runner {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #fff;
+}
+
+.horse-number {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--horse-color);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.live-race-runner strong {
+  overflow: hidden;
+  color: #172033;
+  font-size: 13px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.live-race-runner em {
+  color: #667085;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.live-race-empty {
+  color: #667085;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.race-field-panel {
+  padding: 16px;
+}
+
+.race-field-panel .panel-heading-row > span {
+  color: #667085;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.race-field-panel p {
+  margin: 0;
+  color: #667085;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.race-runner-list {
+  display: grid;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.race-runner-row {
+  display: grid;
+  grid-template-columns: 34px 72px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #fff;
+}
+
+.race-runner-row > span:nth-child(2) {
+  color: #344054;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.race-runner-row strong {
+  overflow: hidden;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 850;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .event-detail-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
@@ -1764,7 +1987,8 @@ button:disabled {
 
 @media (max-width: 1040px) {
   .spotlight-grid,
-  .live-card-grid {
+  .live-card-grid,
+  .live-race-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1846,7 +2070,8 @@ button:disabled {
   .featured-odds,
   .hero-odds-strip,
   .event-hero-panel,
-  .live-card-grid {
+  .live-card-grid,
+  .live-race-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1878,6 +2103,8 @@ button:disabled {
   .event-hero-panel,
   .market-panel,
   .quick-bet-panel,
+  .live-race-card-main,
+  .race-field-panel,
   .login-card,
   .login-preview {
     padding: 14px;

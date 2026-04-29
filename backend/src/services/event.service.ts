@@ -1,4 +1,4 @@
-import { events, sports, markets, odds } from '../db/schema';
+import { events, sports, markets, odds, raceRunners, horses, jockeys } from '../db/schema';
 import { db } from '../db';
 import { eq, and } from 'drizzle-orm';
 import { eventStatusEnum } from '../db/schema';
@@ -30,6 +30,18 @@ export interface Odd {
   selectionName: string;
   decimalOdds: number;
   isActive: boolean;
+}
+
+export interface RaceRunner {
+  id: number;
+  raceId: number;
+  horseId: number;
+  jockeyId: number;
+  stallNumber: number;
+  startingOdds: number;
+  finalPosition: number | null;
+  horseName: string;
+  jockeyName: string;
 }
 
 async function getHorseRacingSport() {
@@ -143,6 +155,35 @@ export async function getEventWithOdds(eventId: number) {
     ...event,
     markets: marketsWithOdds,
   };
+}
+
+export async function getEventRaceRunners(eventId: number): Promise<RaceRunner[] | null> {
+  const event = await getEventById(eventId);
+  if (!event) {
+    return null;
+  }
+
+  const runners = await db
+    .select({
+      id: raceRunners.id,
+      raceId: raceRunners.raceId,
+      horseId: raceRunners.horseId,
+      jockeyId: raceRunners.jockeyId,
+      stallNumber: raceRunners.stallNumber,
+      startingOdds: raceRunners.startingOdds,
+      finalPosition: raceRunners.finalPosition,
+      horseName: horses.name,
+      jockeyName: jockeys.name,
+    })
+    .from(raceRunners)
+    .innerJoin(horses, eq(raceRunners.horseId, horses.id))
+    .innerJoin(jockeys, eq(raceRunners.jockeyId, jockeys.id))
+    .where(eq(raceRunners.raceId, eventId));
+
+  return runners.map((runner) => ({
+    ...runner,
+    startingOdds: parseFloat(runner.startingOdds),
+  }));
 }
 
 export async function updateEventStatus(eventId: number, status: typeof eventStatusEnum.enumValues[number]) {

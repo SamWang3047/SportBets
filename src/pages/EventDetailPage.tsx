@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AppShell from '../components/AppShell';
 import { betsApi, eventsApi } from '../services/api';
-import type { Event, Market } from '../types';
+import type { Event, Market, RaceRunner, RaceSimulationState } from '../types';
 
 type SelectedOdds = {
   marketId: number;
@@ -10,6 +10,18 @@ type SelectedOdds = {
   selectionName: string;
   odds: number;
 };
+
+const HORSE_COLORS = ['#4f5cff', '#f97316', '#0ea5e9', '#16a34a', '#dc2626', '#8b5cf6', '#ca8a04', '#0f766e'];
+
+function parseSimulationState(value?: string): RaceSimulationState {
+  if (!value) return {};
+
+  try {
+    return JSON.parse(value) as RaceSimulationState;
+  } catch {
+    return {};
+  }
+}
 
 function formatDateTime(value: string) {
   const date = new Date(value);
@@ -32,11 +44,59 @@ function getApiErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+function getRunnerPosition(runner: RaceRunner, simulation: RaceSimulationState) {
+  const rankingPosition = simulation.ranking?.find((rank) => rank.horseId === runner.horseId)?.position;
+  const finalPosition = simulation.finalPositions?.find((rank) => rank.horseId === runner.horseId)?.position;
+
+  return rankingPosition || finalPosition || runner.finalPosition || 0;
+}
+
+function RaceFieldPanel({ event, runners }: { event: Event; runners: RaceRunner[] }) {
+  const simulation = parseSimulationState(event.simulationState);
+  const sortedRunners = [...runners]
+    .map((runner) => ({
+      ...runner,
+      livePosition: getRunnerPosition(runner, simulation),
+    }))
+    .sort((a, b) => {
+      if (!a.livePosition && !b.livePosition) return a.stallNumber - b.stallNumber;
+      if (!a.livePosition) return 1;
+      if (!b.livePosition) return -1;
+      return a.livePosition - b.livePosition;
+    });
+
+  return (
+    <section className="panel race-field-panel">
+      <div className="panel-heading-row">
+        <h2>Race Field</h2>
+        <span>{runners.length} runners</span>
+      </div>
+
+      {sortedRunners.length === 0 ? (
+        <p>No runners have been assigned to this race.</p>
+      ) : (
+        <div className="race-runner-list">
+          {sortedRunners.map((runner) => (
+            <div className="race-runner-row" key={runner.id}>
+              <span className="horse-number" style={{ '--horse-color': HORSE_COLORS[(runner.stallNumber - 1) % HORSE_COLORS.length] } as CSSProperties}>
+                {runner.stallNumber}
+              </span>
+              <span>{runner.livePosition ? `#${runner.livePosition}` : 'Pending'}</span>
+              <strong>{runner.horseName}</strong>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const [event, setEvent] = useState<Event | null>(null);
   const [markets, setMarkets] = useState<Market[]>([]);
+  const [runners, setRunners] = useState<RaceRunner[]>([]);
   const [selectedOdds, setSelectedOdds] = useState<SelectedOdds | null>(null);
   const [stake, setStake] = useState('100');
   const [loading, setLoading] = useState(true);
@@ -47,22 +107,24 @@ export default function EventDetailPage() {
   useEffect(() => {
     let mounted = true;
 
-    const loadEventData = async () => {
+    const loadEventData = async (showLoading = false) => {
       if (!eventId) return;
 
-      setLoading(true);
+      if (showLoading) setLoading(true);
       setError('');
 
       try {
         const id = Number.parseInt(eventId, 10);
-        const [eventData, marketsData] = await Promise.all([
+        const [eventData, marketsData, runnersData] = await Promise.all([
           eventsApi.getEvent(id),
           eventsApi.getEventMarkets(id),
+          eventsApi.getEventRunners(id).catch(() => []),
         ]);
 
         if (!mounted) return;
         setEvent(eventData);
         setMarkets(marketsData);
+        setRunners(runnersData);
       } catch {
         if (mounted) setError('Failed to load event data.');
       } finally {
@@ -70,10 +132,12 @@ export default function EventDetailPage() {
       }
     };
 
-    loadEventData();
+    loadEventData(true);
+    const refresh = window.setInterval(() => loadEventData(), 2500);
 
     return () => {
       mounted = false;
+      window.clearInterval(refresh);
     };
   }, [eventId]);
 
@@ -165,6 +229,7 @@ export default function EventDetailPage() {
 
             <div className="event-detail-grid">
               <section className="market-stack" aria-label="Betting markets">
+                <RaceFieldPanel event={event} runners={runners} />
                 <div className="section-heading">
                   <h2>Betting Markets</h2>
                   <span>{markets.length} open</span>

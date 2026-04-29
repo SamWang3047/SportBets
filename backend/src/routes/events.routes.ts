@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { getAllSports, getEvents, getEventById, getEventWithOdds } from '../services/event.service';
+import { getAllSports, getEvents, getEventById, getEventRaceRunners, getEventWithOdds } from '../services/event.service';
 import { authenticate } from './auth.routes';
 
 const router = Router();
@@ -58,6 +58,22 @@ router.get('/events/:eventId/markets', async (req: Request, res: Response) => {
     res.json(eventWithOdds.markets);
   } catch (error: any) {
     res.status(500).json({ error: 'Failed to get event markets' });
+  }
+});
+
+// GET /api/events/:eventId/runners
+router.get('/events/:eventId/runners', async (req: Request, res: Response) => {
+  try {
+    const eventId = parseInt(req.params.eventId as string);
+    const runners = await getEventRaceRunners(eventId);
+
+    if (!runners) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    res.json(runners);
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to get race runners' });
   }
 });
 

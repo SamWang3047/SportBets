@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AuthResponse, Event, Market, Odd, Bet, Wallet, Transaction } from '../types';
+import type { AuthResponse, Event, Market, Odd, Bet, Wallet, Transaction, RaceRunner } from '../types';
 
 const configuredApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 const normalizedApiUrl = configuredApiUrl.replace(/\/+$/, '');
@@ -65,6 +65,11 @@ export const eventsApi = {
 
   getEventOdds: async (eventId: number): Promise<Odd[]> => {
     const response = await api.get(`/events/${eventId}/odds`);
+    return response.data;
+  },
+
+  getEventRunners: async (eventId: number): Promise<RaceRunner[]> => {
+    const response = await api.get(`/events/${eventId}/runners`);
     return response.data;
   },
 };
