@@ -114,6 +114,11 @@ export default api;
 
 // Dev API (only available in development)
 export const devApi = {
+  depositToWallet: async (amount: number): Promise<{ success: boolean; transaction: Transaction }> => {
+    const response = await api.post('/dev/wallet/deposit', { amount });
+    return response.data;
+  },
+
   generateRace: async () => {
     const response = await api.post('/dev/races/generate');
     return response.data;

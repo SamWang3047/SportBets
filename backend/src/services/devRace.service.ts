@@ -1,6 +1,6 @@
 import { events, sports, markets, odds, horses, jockeys, raceRunners, bets } from '../db/schema';
 import { db } from '../db';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, lte } from 'drizzle-orm';
 import { settleEventBets } from './bet.service';
 import { updateEventStatus, updateEventSimulationState } from './event.service';
 
@@ -212,6 +212,9 @@ const activeSimulations = new Map<number, {
   ranking: Array<{ horseId: number; position: number; distance: number }>;
 }>();
 
+let scheduleMonitor: ReturnType<typeof setInterval> | null = null;
+let scheduleMonitorChecking = false;
+
 /**
  * Instantly settle a race and resolve all pending bets
  */
@@ -273,6 +276,32 @@ export async function settleDevRace(eventId: number) {
  * Start a 30-second demo simulation of a race
  */
 export async function runDevRace(eventId: number) {
+  const activeSimulation = activeSimulations.get(eventId);
+  if (activeSimulation) {
+    return {
+      simulationId: activeSimulation.simulationId,
+      estimatedDuration: 30,
+    };
+  }
+
+  const [event] = await db
+    .select({ status: events.status })
+    .from(events)
+    .where(eq(events.id, eventId))
+    .limit(1);
+
+  if (!event) {
+    throw new Error('Event not found');
+  }
+
+  if (event.status === 'live') {
+    throw new Error('Race is already running');
+  }
+
+  if (event.status === 'finished') {
+    throw new Error('Race is already finished');
+  }
+
   // Get race runners with details
   const runners = await getRaceRunnersWithDetails(eventId);
 
@@ -394,4 +423,97 @@ export async function getRaceSimulationState(eventId: number) {
   } catch {
     return null;
   }
+}
+
+function isScheduledDevRace(simulationState: string | null) {
+  if (!simulationState) return false;
+
+  try {
+    const parsed = JSON.parse(simulationState) as { phase?: string };
+    return parsed.phase === 'scheduled';
+  } catch {
+    return false;
+  }
+}
+
+function isOverdueRunningDevRace(simulationState: string | null, now = Date.now()) {
+  if (!simulationState) return false;
+
+  try {
+    const parsed = JSON.parse(simulationState) as { phase?: string; estimatedEndTime?: number };
+    return parsed.phase === 'running' && typeof parsed.estimatedEndTime === 'number' && parsed.estimatedEndTime <= now;
+  } catch {
+    return false;
+  }
+}
+
+export async function startDueDevRaceSimulations() {
+  const dueScheduledEvents = await db
+    .select({
+      id: events.id,
+      simulationState: events.simulationState,
+    })
+    .from(events)
+    .innerJoin(sports, eq(events.sportId, sports.id))
+    .where(and(eq(sports.code, 'horse_racing'), eq(events.status, 'scheduled'), lte(events.startTime, new Date())))
+    .limit(20);
+
+  const startableEvents = dueScheduledEvents.filter((event) => isScheduledDevRace(event.simulationState));
+  const startResults = await Promise.allSettled(startableEvents.map((event) => runDevRace(event.id)));
+
+  startResults.forEach((result, index) => {
+    if (result.status === 'rejected') {
+      console.error(`Failed to auto-start due race #${startableEvents[index]?.id}:`, result.reason);
+    }
+  });
+
+  const liveEvents = await db
+    .select({
+      id: events.id,
+      simulationState: events.simulationState,
+    })
+    .from(events)
+    .innerJoin(sports, eq(events.sportId, sports.id))
+    .where(and(eq(sports.code, 'horse_racing'), eq(events.status, 'live')))
+    .limit(20);
+
+  const overdueLiveEvents = liveEvents.filter((event) => isOverdueRunningDevRace(event.simulationState));
+  const settleResults = await Promise.allSettled(overdueLiveEvents.map((event) => settleDevRace(event.id)));
+
+  settleResults.forEach((result, index) => {
+    if (result.status === 'rejected') {
+      console.error(`Failed to auto-settle overdue race #${overdueLiveEvents[index]?.id}:`, result.reason);
+    }
+  });
+}
+
+export function startDevRaceScheduleMonitor(intervalMs = 5000) {
+  if (scheduleMonitor) {
+    return;
+  }
+
+  const checkDueRaces = async () => {
+    if (scheduleMonitorChecking) return;
+    scheduleMonitorChecking = true;
+
+    try {
+      await startDueDevRaceSimulations();
+    } catch (error) {
+      console.error('Failed to check due race simulations:', error);
+    } finally {
+      scheduleMonitorChecking = false;
+    }
+  };
+
+  void checkDueRaces();
+  scheduleMonitor = setInterval(checkDueRaces, intervalMs);
+}
+
+export function stopDevRaceScheduleMonitor() {
+  if (!scheduleMonitor) {
+    return;
+  }
+
+  clearInterval(scheduleMonitor);
+  scheduleMonitor = null;
 }

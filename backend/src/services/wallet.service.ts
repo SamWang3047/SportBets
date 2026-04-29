@@ -94,6 +94,21 @@ export async function createTransaction(
   };
 }
 
+export async function depositToWallet(userId: number, amount: number) {
+  const [wallet] = await db.select().from(wallets).where(eq(wallets.userId, userId)).limit(1);
+  if (!wallet) {
+    throw new Error('Wallet not found');
+  }
+
+  return createTransaction(
+    wallet.id,
+    'deposit',
+    amount,
+    undefined,
+    'Developer account deposit'
+  );
+}
+
 export async function deductForBet(userId: number, betId: number, amount: number) {
   const [wallet] = await db.select().from(wallets).where(eq(wallets.userId, userId)).limit(1);
   if (!wallet) {

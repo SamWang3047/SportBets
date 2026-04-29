@@ -11,6 +11,7 @@ import walletRoutes from './routes/wallet.routes';
 import adminRoutes from './routes/admin.routes';
 import devRoutes from './routes/dev.routes';
 import { initializeSocket } from './sockets';
+import { startDevRaceScheduleMonitor } from './services/devRace.service';
 
 console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET');
 console.log('DATABASE_URL value:', process.env.DATABASE_URL);
@@ -43,4 +44,6 @@ initializeSocket(httpServer);
 httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`WebSocket server is ready`);
+  startDevRaceScheduleMonitor();
+  console.log(`Race schedule monitor is ready`);
 });

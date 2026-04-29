@@ -32,12 +32,20 @@ function formatStartTime(value: string) {
   });
 }
 
+function formatDuration(seconds: number) {
+  if (seconds < 60) return `${seconds}s`;
+
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}m ${remainingSeconds.toString().padStart(2, '0')}s`;
+}
+
 function formatCountdown(race: LiveRace, now: number) {
   const estimatedEndTime = race.simulation.estimatedEndTime;
   if (!estimatedEndTime || race.event.status !== 'live') return '--';
 
   const seconds = Math.max(0, Math.ceil((estimatedEndTime - now) / 1000));
-  return `${seconds}s`;
+  return formatDuration(seconds);
 }
 
 function getRunnerPosition(race: LiveRace, runner: RaceRunner) {
@@ -69,6 +77,15 @@ function getStatusCopy(race: LiveRace, now: number) {
 
   if (race.event.status === 'finished') {
     return 'Finished';
+  }
+
+  const startsInSeconds = Math.ceil((new Date(race.event.startTime).getTime() - now) / 1000);
+  if (startsInSeconds > 0) {
+    return `Starts in ${formatDuration(startsInSeconds)}`;
+  }
+
+  if (race.simulation.phase === 'scheduled') {
+    return 'Starting soon';
   }
 
   return `Scheduled ${formatStartTime(race.event.startTime)}`;

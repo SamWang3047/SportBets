@@ -23,7 +23,7 @@ type IconName =
 const navItems = [
   { label: 'Dashboard', icon: 'home' as IconName, path: '/' },
   { label: 'Live', icon: 'live' as IconName, path: '/live' },
-  { label: 'Upcoming', icon: 'calendar' as IconName, path: '/' },
+  { label: 'Upcoming', icon: 'calendar' as IconName, path: '/upcoming' },
   { label: 'My Bets', icon: 'bets' as IconName, path: '/bets', count: 3 },
   { label: 'Profile', icon: 'profile' as IconName, path: '/' },
   { label: 'Settings', icon: 'settings' as IconName, path: '/settings' },
@@ -114,17 +114,23 @@ export default function AppShell({ children, activePage = 'Dashboard', rightRail
   useEffect(() => {
     let mounted = true;
 
-    walletApi
-      .getWallet()
-      .then((nextWallet) => {
-        if (mounted) setWallet(nextWallet);
-      })
-      .catch(() => {
-        if (mounted) setWallet(null);
-      });
+    const loadWallet = () => {
+      walletApi
+        .getWallet()
+        .then((nextWallet) => {
+          if (mounted) setWallet(nextWallet);
+        })
+        .catch(() => {
+          if (mounted) setWallet(null);
+        });
+    };
+
+    loadWallet();
+    window.addEventListener('wallet:updated', loadWallet);
 
     return () => {
       mounted = false;
+      window.removeEventListener('wallet:updated', loadWallet);
     };
   }, [location.pathname]);
 

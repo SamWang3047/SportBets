@@ -328,7 +328,15 @@ function LiveCard({ card, onOpen }: { card: EventCard; onOpen: (id: number) => v
     </article>
   );
 }
-function UpcomingTable({ events, marketsByEvent }: { events: SportEvent[]; marketsByEvent: Record<number, Market[]> }) {
+function UpcomingTable({
+  events,
+  marketsByEvent,
+  onViewAll,
+}: {
+  events: SportEvent[];
+  marketsByEvent: Record<number, Market[]>;
+  onViewAll: () => void;
+}) {
   const rows = [
     ...events.slice(0, 4),
     ...fallbackEvents.filter((event) => !events.some((realEvent) => realEvent.name === event.name)),
@@ -337,7 +345,7 @@ function UpcomingTable({ events, marketsByEvent }: { events: SportEvent[]; marke
     <section className="dashboard-section upcoming-panel">
       <div className="section-heading">
         <h2>Upcoming Events</h2>
-        <button type="button">View All Upcoming <span aria-hidden="true">&gt;</span></button>
+        <button type="button" onClick={onViewAll}>View All Upcoming <span aria-hidden="true">&gt;</span></button>
       </div>
       <div className="market-table" role="table" aria-label="Upcoming events">
         <div className="market-table-head" role="row">
@@ -479,7 +487,9 @@ export default function HomePage() {
           <section className="dashboard-section">
             <div className="section-heading">
               <h2>Live Now</h2>
-              <button type="button">View All Live (24) <span aria-hidden="true">&gt;</span></button>
+              <button type="button" onClick={() => navigate('/live')}>
+                View All Live ({liveCards.length}) <span aria-hidden="true">&gt;</span>
+              </button>
             </div>
             <div className="live-card-grid">
               {liveCards.map((card) => (
@@ -487,7 +497,7 @@ export default function HomePage() {
               ))}
             </div>
           </section>
-          <UpcomingTable events={raceEvents} marketsByEvent={marketsByEvent} />
+          <UpcomingTable events={raceEvents} marketsByEvent={marketsByEvent} onViewAll={() => navigate('/upcoming')} />
         </div>
       )}
     </AppShell>

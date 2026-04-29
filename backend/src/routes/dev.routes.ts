@@ -7,8 +7,18 @@ import {
 } from '../services/devRace.service';
 import { settleDevRace, runDevRace, getRaceSimulationState } from '../services/devRace.service';
 import { getEventById } from '../services/event.service';
+import { depositToWallet } from '../services/wallet.service';
+import { authenticate } from './auth.routes';
 
 const router = Router();
+
+const depositSchema = z.object({
+  amount: z.coerce
+    .number()
+    .positive()
+    .max(100000)
+    .refine((value) => Math.abs(value * 100 - Math.round(value * 100)) < 0.000001, 'Amount must be a valid currency value'),
+});
 
 // Check if we're in production
 const isProduction = process.env.NODE_ENV === 'production';
@@ -23,6 +33,30 @@ const devOnly = (req: Request, res: Response, next: () => void) => {
 
 // Apply dev-only middleware to all routes
 router.use(devOnly);
+
+/**
+ * POST /api/dev/wallet/deposit
+ * Deposit virtual credits into the authenticated user's wallet for local testing.
+ */
+router.post('/wallet/deposit', authenticate, async (req: Request, res: Response) => {
+  try {
+    const body = depositSchema.parse(req.body);
+    const amount = Math.round(body.amount * 100) / 100;
+    const userId = (req as any).user.id;
+    const transaction = await depositToWallet(userId, amount);
+
+    res.json({
+      success: true,
+      transaction,
+    });
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Validation error', details: error.issues });
+    }
+
+    res.status(500).json({ error: error.message || 'Failed to deposit funds' });
+  }
+});
 
 /**
  * POST /api/dev/races/generate
