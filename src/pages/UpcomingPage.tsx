@@ -2,17 +2,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../components/AppShell';
 import { eventsApi } from '../services/api';
-import type { Event, Market, Odd, RaceRunner } from '../types';
-
-type UpcomingRace = {
-  event: Event;
-  markets: Market[];
-  runners: RaceRunner[];
-};
-
-type FavoriteOdd = Odd & {
-  marketName: string;
-};
+import { formatStartsIn, getFavoriteOdds, sortUpcomingRaces, type FavoriteOdd, type UpcomingRace } from './upcomingPage.logic';
 
 const HORSE_COLORS = ['#4f5cff', '#f97316', '#0ea5e9', '#16a34a', '#dc2626', '#8b5cf6', '#ca8a04', '#0f766e'];
 
@@ -26,42 +16,6 @@ function formatStartDate(value: string) {
     hour: 'numeric',
     minute: '2-digit',
   });
-}
-
-function formatDuration(seconds: number) {
-  if (seconds < 60) return `${seconds}s`;
-
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  if (minutes < 60) return `${minutes}m ${remainingSeconds.toString().padStart(2, '0')}s`;
-
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  return `${hours}h ${remainingMinutes.toString().padStart(2, '0')}m`;
-}
-
-function formatStartsIn(value: string, now: number) {
-  const startTime = new Date(value).getTime();
-  if (Number.isNaN(startTime)) return 'Scheduled';
-
-  const seconds = Math.ceil((startTime - now) / 1000);
-  if (seconds <= 0) return 'Scheduled time passed';
-
-  return `Starts in ${formatDuration(seconds)}`;
-}
-
-function getFavoriteOdds(race: UpcomingRace): FavoriteOdd[] {
-  return race.markets
-    .flatMap((market) =>
-      market.odds.map((odd) => ({
-        ...odd,
-        marketId: market.id,
-        marketName: market.name,
-      }))
-    )
-    .filter((odd) => odd.isActive)
-    .sort((a, b) => a.decimalOdds - b.decimalOdds)
-    .slice(0, 3);
 }
 
 function getOddRunner(race: UpcomingRace, odd: FavoriteOdd) {
@@ -194,10 +148,7 @@ export default function UpcomingPage() {
     };
   }, []);
 
-  const scheduledRaces = useMemo(
-    () => [...races].sort((a, b) => new Date(a.event.startTime).getTime() - new Date(b.event.startTime).getTime()),
-    [races]
-  );
+  const scheduledRaces = useMemo(() => sortUpcomingRaces(races), [races]);
 
   const nextRace = scheduledRaces[0];
 

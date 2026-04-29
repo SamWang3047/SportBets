@@ -1,8 +1,9 @@
-import { events, sports, markets, odds, horses, jockeys, raceRunners, bets } from '../db/schema';
+import { events, sports, markets, odds, horses, jockeys, raceRunners } from '../db/schema';
 import { db } from '../db';
 import { eq, and, lte } from 'drizzle-orm';
 import { settleEventBets } from './bet.service';
 import { updateEventStatus, updateEventSimulationState } from './event.service';
+import { isOverdueRunningDevRace, isScheduledDevRace } from './devRaceScheduler.logic';
 
 // Sample data for generating demo races
 const HORSE_NAMES = [
@@ -422,28 +423,6 @@ export async function getRaceSimulationState(eventId: number) {
     return JSON.parse(event.simulationState);
   } catch {
     return null;
-  }
-}
-
-function isScheduledDevRace(simulationState: string | null) {
-  if (!simulationState) return false;
-
-  try {
-    const parsed = JSON.parse(simulationState) as { phase?: string };
-    return parsed.phase === 'scheduled';
-  } catch {
-    return false;
-  }
-}
-
-function isOverdueRunningDevRace(simulationState: string | null, now = Date.now()) {
-  if (!simulationState) return false;
-
-  try {
-    const parsed = JSON.parse(simulationState) as { phase?: string; estimatedEndTime?: number };
-    return parsed.phase === 'running' && typeof parsed.estimatedEndTime === 'number' && parsed.estimatedEndTime <= now;
-  } catch {
-    return false;
   }
 }
 
