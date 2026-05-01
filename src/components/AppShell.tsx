@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { walletApi } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import type { Wallet } from '../types';
+import ProfileSidebar from './ProfileSidebar';
 
 type AppShellProps = {
   children: ReactNode;
@@ -110,6 +111,7 @@ export default function AppShell({ children, activePage = 'Dashboard', rightRail
   const location = useLocation();
   const { user, logout } = useAuthStore();
   const [wallet, setWallet] = useState<Wallet | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -146,6 +148,7 @@ export default function AppShell({ children, activePage = 'Dashboard', rightRail
 
   const handleLogout = () => {
     logout();
+    setProfileOpen(false);
     navigate('/login');
   };
 
@@ -159,12 +162,20 @@ export default function AppShell({ children, activePage = 'Dashboard', rightRail
 
         <nav className="sidebar-nav">
           {navItems.map((item) => {
-            const selected = activePage === item.label;
+            const selected = activePage === item.label || (item.label === 'Profile' && profileOpen);
+            const openProfile = item.label === 'Profile';
             return (
               <button
                 key={item.label}
                 className={`nav-row ${selected ? 'is-active' : ''}`}
-                onClick={() => navigate(item.path)}
+                onClick={() => {
+                  if (openProfile) {
+                    setProfileOpen(true);
+                    return;
+                  }
+                  navigate(item.path);
+                }}
+                aria-expanded={openProfile ? profileOpen : undefined}
               >
                 <Icon name={item.icon} />
                 <span>{item.label}</span>
@@ -201,10 +212,16 @@ export default function AppShell({ children, activePage = 'Dashboard', rightRail
               <span>Wallet</span>
               <strong>{wallet ? `$${wallet.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'}</strong>
             </div>
-            <button className="deposit-button" type="button">
+            <button className="deposit-button" type="button" onClick={() => navigate('/wallet')}>
               Deposit
             </button>
-            <button className="avatar-button" type="button" onClick={handleLogout} title="Logout">
+            <button
+              className={`avatar-button ${profileOpen ? 'is-active' : ''}`}
+              type="button"
+              onClick={() => setProfileOpen(true)}
+              aria-label="Open profile sidebar"
+              aria-expanded={profileOpen}
+            >
               {initials || 'SB'}
             </button>
           </div>
@@ -214,6 +231,21 @@ export default function AppShell({ children, activePage = 'Dashboard', rightRail
       </div>
 
       {rightRail && <aside className="right-rail">{rightRail}</aside>}
+      <button
+        className={`profile-sidebar-backdrop ${profileOpen ? 'is-open' : ''}`}
+        type="button"
+        aria-label="Close profile sidebar"
+        tabIndex={profileOpen ? 0 : -1}
+        onClick={() => setProfileOpen(false)}
+      />
+      <ProfileSidebar
+        open={profileOpen}
+        user={user}
+        wallet={wallet}
+        initials={initials}
+        onClose={() => setProfileOpen(false)}
+        onLogout={handleLogout}
+      />
     </div>
   );
 }
