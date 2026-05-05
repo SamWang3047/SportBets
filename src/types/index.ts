@@ -78,6 +78,47 @@ export interface RaceSimulationState {
   }>;
 }
 
+export interface DevRaceGeneratedRunner {
+  id: number;
+  horseId: number;
+  jockeyId: number;
+  stallNumber: number;
+  horseName: string;
+  jockeyName: string;
+  startingOdds: number;
+}
+
+export interface DevRaceGeneratedOdd {
+  id: number;
+  selectionId: string;
+  selectionName: string;
+  decimalOdds: number;
+}
+
+export interface DevRaceGenerationResult {
+  success: boolean;
+  eventId: number;
+  marketId: number;
+  runners: DevRaceGeneratedRunner[];
+  odds: DevRaceGeneratedOdd[];
+}
+
+export interface DevRaceSettlementResult {
+  success: boolean;
+  eventId: number;
+  winningHorseId: string;
+  finalPositions: Array<[number, number]>;
+  settledBets: number;
+}
+
+export interface DevRaceRunResult {
+  success: boolean;
+  eventId: number;
+  simulationId: string;
+  estimatedDuration: number;
+  message: string;
+}
+
 export interface Bet {
   id: number;
   eventId: number;

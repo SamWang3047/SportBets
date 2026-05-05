@@ -15,6 +15,7 @@ type IconName =
   | 'home'
   | 'live'
   | 'calendar'
+  | 'control'
   | 'bets'
   | 'profile'
   | 'gift'
@@ -25,6 +26,7 @@ const navItems = [
   { label: 'Dashboard', icon: 'home' as IconName, path: '/' },
   { label: 'Live', icon: 'live' as IconName, path: '/live' },
   { label: 'Upcoming', icon: 'calendar' as IconName, path: '/upcoming' },
+  { label: 'Control Room', icon: 'control' as IconName, path: '/dev/race-control' },
   { label: 'My Bets', icon: 'bets' as IconName, path: '/bets', count: 3 },
   { label: 'Profile', icon: 'profile' as IconName, path: '/' },
   { label: 'Settings', icon: 'settings' as IconName, path: '/settings' },
@@ -64,6 +66,15 @@ function Icon({ name }: { name: IconName }) {
         <svg {...common}>
           <rect x="4" y="5" width="16" height="15" rx="2" />
           <path d="M8 3v4M16 3v4M4 10h16" />
+        </svg>
+      );
+    case 'control':
+      return (
+        <svg {...common}>
+          <path d="M4 6h16M4 18h16" />
+          <path d="M8 6v6M16 12v6" />
+          <circle cx="8" cy="14" r="2" />
+          <circle cx="16" cy="10" r="2" />
         </svg>
       );
     case 'bets':

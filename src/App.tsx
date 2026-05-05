@@ -8,6 +8,7 @@ import WalletPage from './pages/WalletPage';
 import SettingsPage from './pages/SettingsPage';
 import LivePage from './pages/LivePage';
 import UpcomingPage from './pages/UpcomingPage';
+import LiveRaceControlPage from './pages/LiveRaceControlPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -48,6 +49,14 @@ function App() {
           element={
             <ProtectedRoute>
               <UpcomingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dev/race-control"
+          element={
+            <ProtectedRoute>
+              <LiveRaceControlPage />
             </ProtectedRoute>
           }
         />

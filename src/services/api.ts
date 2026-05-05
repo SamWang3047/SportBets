@@ -1,5 +1,18 @@
 import axios from 'axios';
-import type { AuthResponse, Event, Market, Odd, Bet, Wallet, Transaction, RaceRunner } from '../types';
+import type {
+  AuthResponse,
+  Event,
+  Market,
+  Odd,
+  Bet,
+  Wallet,
+  Transaction,
+  RaceRunner,
+  RaceSimulationState,
+  DevRaceGenerationResult,
+  DevRaceRunResult,
+  DevRaceSettlementResult,
+} from '../types';
 
 const configuredApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 const normalizedApiUrl = configuredApiUrl.replace(/\/+$/, '');
@@ -119,27 +132,27 @@ export const devApi = {
     return response.data;
   },
 
-  generateRace: async () => {
+  generateRace: async (): Promise<DevRaceGenerationResult> => {
     const response = await api.post('/dev/races/generate');
     return response.data;
   },
 
-  getRaceRunners: async (eventId: number) => {
+  getRaceRunners: async (eventId: number): Promise<RaceRunner[]> => {
     const response = await api.get(`/dev/races/${eventId}/runners`);
     return response.data;
   },
 
-  settleRace: async (eventId: number) => {
+  settleRace: async (eventId: number): Promise<DevRaceSettlementResult> => {
     const response = await api.post(`/dev/races/${eventId}/settle`);
     return response.data;
   },
 
-  runRace: async (eventId: number) => {
+  runRace: async (eventId: number): Promise<DevRaceRunResult> => {
     const response = await api.post(`/dev/races/${eventId}/run`);
     return response.data;
   },
 
-  getSimulationState: async (eventId: number) => {
+  getSimulationState: async (eventId: number): Promise<RaceSimulationState> => {
     const response = await api.get(`/dev/races/${eventId}/simulation`);
     return response.data;
   },
