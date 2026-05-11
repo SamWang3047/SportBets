@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatStartsIn, getFavoriteOdds, sortUpcomingRaces } from '../src/pages/upcomingPage.logic';
+import { formatDuration, formatStartsIn, getFavoriteOdds, sortUpcomingRaces } from '../src/pages/upcomingPage.logic';
 import type { Event, Market, RaceRunner } from '../src/types';
 
 function race(id: number, startTime: string) {
@@ -19,6 +19,20 @@ function race(id: number, startTime: string) {
 }
 
 describe('Upcoming page logic', () => {
+  it('formats durations under one minute as seconds', () => {
+    expect(formatDuration(45)).toBe('45s');
+  });
+
+  it('formats durations under one hour as minutes and padded seconds', () => {
+    expect(formatDuration(65)).toBe('1m 05s');
+    expect(formatDuration(599)).toBe('9m 59s');
+  });
+
+  it('formats durations of at least one hour as hours and padded minutes', () => {
+    expect(formatDuration(3900)).toBe('1h 05m');
+    expect(formatDuration(7200)).toBe('2h 00m');
+  });
+
   it('sorts scheduled races by start time ascending', () => {
     const races = [
       race(3, '2026-04-29T11:15:00.000Z'),
