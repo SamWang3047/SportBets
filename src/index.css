@@ -2071,6 +2071,69 @@ button:disabled {
   gap: 16px;
 }
 
+.race-control-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 4px 2px 2px;
+}
+
+.race-control-title {
+  min-width: 0;
+}
+
+.race-control-title > span {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 0 9px;
+  border-radius: 6px;
+  color: var(--accent-strong);
+  background: #e7e9ff;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.race-control-title h1 {
+  margin: 0;
+  color: #111827;
+  font-size: 28px;
+  font-weight: 850;
+  letter-spacing: 0;
+  line-height: 1.14;
+}
+
+.race-control-title p {
+  margin: 7px 0 0;
+  color: #667085;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.race-control-header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.race-control-header-meta > span:not(.status-chip) {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: #344054;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .race-control-toolbar {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) 160px minmax(220px, 1fr);
@@ -2865,6 +2928,15 @@ button:disabled {
   .page-title-row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .race-control-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .race-control-header-meta {
+    justify-content: flex-start;
   }
 
   .upcoming-race-heading {

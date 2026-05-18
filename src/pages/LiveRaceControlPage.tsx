@@ -244,16 +244,18 @@ export default function LiveRaceControlPage() {
   return (
     <AppShell activePage="Control Room">
       <div className="workspace-page race-control-page">
-        <div className="page-title-row">
-          <div>
+        <header className="race-control-header">
+          <div className="race-control-title">
+            <span>Dev Console</span>
             <h1>Live Race Control Room</h1>
-            <p>Generate, fund, bet, run, and settle a horse race from one development console.</p>
+            <p>Generate a race, place test bets, run the simulator, and settle the result.</p>
           </div>
-          <div className="live-summary">
+          <div className="race-control-header-meta" aria-label="Current control room status">
+            {event && <span className={`status-chip ${event.status}`}>{event.status}</span>}
             <span>{event ? `Race #${event.id}` : 'No race loaded'}</span>
             <span>{event ? formatRaceClock(event, simulation, now) : 'Idle'}</span>
           </div>
-        </div>
+        </header>
 
         {message && (
           <div className={`message-banner ${messageType}`} role={messageType === 'error' ? 'alert' : 'status'}>
